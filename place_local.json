@@ -1,0 +1,9 @@
+{
+  "name": "매표소",
+  "description": "입구 옆 매표소",
+  "coordType": "LOCAL_3D",
+  "x": 1.2,
+  "y": 0.0,
+  "z": 3.4,
+  "floor": 1
+}

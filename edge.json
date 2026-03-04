@@ -1,0 +1,6 @@
+{
+  "fromNodeId": 2,
+  "toNodeId": 3,
+  "kind": "walk",
+  "bidirectional": true
+}
