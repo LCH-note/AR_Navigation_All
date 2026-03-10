@@ -71,7 +71,7 @@ export class GraphController {
 
   @Get('path')
 async path(
-  @Query('facilityId') facilityId: string,
+  @Param('facilityId') facilityId: string,
   @Query('fromNodeId') fromNodeId: string,
   @Query('toNodeId') toNodeId: string,
 ) {

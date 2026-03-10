@@ -151,17 +151,33 @@ export class GraphService {
     }
   }
 
-  const path: number[] = [];
-  let current: number | null = toNodeId;
-
-  while (current !== null) {
-    path.unshift(current);
-    current = previous.get(current)!;
-  }
-
+  if (!distances.has(fromNodeId) || !distances.has(toNodeId)) {
   return {
-    path,
-    distance: distances.get(toNodeId),
+    path: [],
+    distance: null,
+    message: 'invalid node id',
   };
+}
+
+if (distances.get(toNodeId) === Infinity) {
+  return {
+    path: [],
+    distance: null,
+    message: 'path not found',
+  };
+}
+
+const path: number[] = [];
+let current: number | null = toNodeId;
+
+while (current != null) {
+  path.unshift(current);
+  current = previous.get(current) ?? null;
+}
+
+return {
+  path,
+  distance: distances.get(toNodeId) ?? null,
+};
 }
 }
