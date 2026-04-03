@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.immersal.core": "https://github.com/immersal/imdk-unity.git",
     "com.unity.collab-proxy": "2.11.3",
     "com.unity.ide.visualstudio": "2.0.22",
     "com.unity.ide.vscode": "1.2.5",
