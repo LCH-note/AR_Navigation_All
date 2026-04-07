@@ -1,17 +1,18 @@
-import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateAnchorDto {
   @IsString()
-  cloudAnchorId: string;
+  @MaxLength(191)
+  cloudAnchorId!: string;
 
   @IsNumber()
-  localX: number;
+  localX!: number;
 
   @IsNumber()
-  localY: number;
+  localY!: number;
 
   @IsNumber()
-  localZ: number;
+  localZ!: number;
 
   @IsOptional()
   @IsNumber()
@@ -23,6 +24,7 @@ export class CreateAnchorDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(191)
   label?: string;
 
   @IsOptional()

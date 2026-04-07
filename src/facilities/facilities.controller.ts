@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { FacilitiesService } from './facilities.service';
-import type { FacilityType } from '@prisma/client';
 
 @Controller('facilities')
 export class FacilitiesController {
@@ -11,9 +10,7 @@ export class FacilitiesController {
     @Body()
     body: {
       name: string;
-      type: FacilityType;
-      centerLat?: number;
-      centerLng?: number;
+      description?: string;
     },
   ) {
     return this.facilitiesService.create(body);

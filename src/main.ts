@@ -5,6 +5,12 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // ✅ CORS 허용 (웹 연동용)
+  app.enableCors({
+    origin: true, // 모든 origin 허용 (개발용)
+    credentials: true,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,          // 문자열 → 숫자 자동 변환
