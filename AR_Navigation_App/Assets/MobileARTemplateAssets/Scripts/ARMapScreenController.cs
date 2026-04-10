@@ -38,8 +38,7 @@ public class ARMapScreenController : MonoBehaviour
     private VisualElement _mapCanvas;        // Painter2D 가 그릴 캔버스
     private Label         _labelCompass;     // 나침반 방위 레이블
     private Label         _labelFloor;       // 층 정보 레이블
-    private Label         _labelNavInstruction; // 내비게이션 안내
-    private Label         _labelNavDistance;    // 남은 거리
+    // AR 내비게이션 안내 텍스트는 ARMapScreen 에서 제거됨 (화살표만 사용)
 
     // ── 상태 변수 ────────────────────────────────────────────────────
     private bool _isActive    = false; // 이 화면이 현재 표시 중인지
@@ -178,8 +177,6 @@ public class ARMapScreenController : MonoBehaviour
         _mapCanvas       = arScreen.Q<VisualElement>("map-canvas");
         _labelCompass    = arScreen.Q<Label>("label-compass");
         _labelFloor      = arScreen.Q<Label>("label-floor");
-        _labelNavInstruction = arScreen.Q<Label>("label-nav-instruction");
-        _labelNavDistance    = arScreen.Q<Label>("label-nav-distance");
 
         // 지도 그리기 콜백 등록
         // MarkDirtyRepaint() 가 호출될 때마다 DrawIndoorMap 이 실행됨

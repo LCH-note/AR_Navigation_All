@@ -28,6 +28,13 @@ public class UIManager : MonoBehaviour
     [Tooltip("ARMapScreen 의 센서·지도 로직을 담당하는 컴포넌트")]
     [SerializeField] private ARMapScreenController arMapScreenController;
 
+    [Header("내비게이션 컨트롤러")]
+    [Tooltip("경로 선택 화면 UI 로직 (경로 카드 선택 관리)")]
+    [SerializeField] private RouteSelectController routeSelectController;
+
+    [Tooltip("AR 화살표 내비게이션 실행 컨트롤러")]
+    [SerializeField] private ARNavigationController arNavigationController;
+
     // ── UI 내부 참조 (런타임에 UIDocument 에서 쿼리) ─────────────────
     private UIDocument    _uiDocument;
     private VisualElement _root;
@@ -124,17 +131,60 @@ public class UIManager : MonoBehaviour
     // 메인 화면 "View Full Map" → 전체 지도 화면
     private void OnViewMapClicked() => ShowScreen(_mapScreen);
 
-    // 메인 화면 "Select Route" → 경로 선택 화면
-    private void OnSelectRouteClicked() => ShowScreen(_routeSelectScreen);
+    // 메인 화면 "Select Route" → 경로 선택 화면 (RouteSelectController 초기화 포함)
+    private void OnSelectRouteClicked()
+    {
+        Debug.Log("UIManager: OnSelectRouteClicked() 호출됨");
+
+        // 경로 선택 화면이 열릴 때 UI 바인딩 및 선택 상태 초기화
+        try
+        {
+            routeSelectController?.OnScreenShown();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"UIManager: RouteSelectController.OnScreenShown() 에서 예외 발생: {e}");
+        }
+
+        if (_routeSelectScreen == null)
+        {
+            Debug.LogError("UIManager: _routeSelectScreen 이 null 입니다! " +
+                           "'RouteSelectScreenInstance' 를 찾을 수 없습니다.");
+            return;
+        }
+
+        ShowScreen(_routeSelectScreen);
+    }
 
     // 지도/경로 선택 화면 "Back" → 메인 화면
     private void OnBackToMainClicked() => ShowScreen(_mainScreen);
 
     // 경로 선택 화면 "내비게이션 시작" → AR 내비게이션 화면
-    private void OnStartNavigationClicked() => ShowScreen(_arMapScreen);
+    private void OnStartNavigationClicked()
+    {
+        // 선택된 경로 데이터 가져오기
+        NavRoute selectedRoute = routeSelectController?.GetSelectedRoute();
 
-    // AR 화면 "← 나가기" → 메인 화면 (컨트롤러 비활성화 포함)
-    private void OnBackFromARClicked() => ShowScreen(_mainScreen);
+        if (selectedRoute == null)
+        {
+            Debug.LogWarning("UIManager: 경로가 선택되지 않았습니다. 내비게이션을 시작할 수 없습니다.");
+            return;
+        }
+
+        // AR 내비게이션 시작 (화살표 배치)
+        arNavigationController?.StartNavigation(selectedRoute);
+
+        ShowScreen(_arMapScreen);
+        Debug.Log($"UIManager: 내비게이션 시작 → {selectedRoute.routeName}");
+    }
+
+    // AR 화면 "← 나가기" → 메인 화면 (내비게이션 종료 포함)
+    private void OnBackFromARClicked()
+    {
+        // 진행 중인 내비게이션 종료 및 화살표 오브젝트 삭제
+        arNavigationController?.StopNavigation();
+        ShowScreen(_mainScreen);
+    }
 
     // ════════════════════════════════════════════════════════════════
     //  화면 전환 핵심 메서드

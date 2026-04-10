@@ -221,3 +221,126 @@
     background-color: rgb(30, 50, 120);
     scale: 0.97;
 }
+
+/* 경로 미선택 상태: 버튼 흐리게 표시 */
+.start-nav-button--disabled {
+    background-color: rgb(24, 34, 60);
+    color: rgba(255, 255, 255, 0.30);
+}
+
+
+/* ══════════════════════════════════════════════
+   경로 선택 화면 — 경로 카드 스타일
+══════════════════════════════════════════════ */
+
+/* 경로 목록 스크롤 영역: 헤더 아래 공간 모두 차지 */
+.route-scroll-view {
+    flex-grow: 1;
+    padding-top: 24px;
+    padding-left: 28px;
+    padding-right: 28px;
+    padding-bottom: 12px;
+}
+
+/* 경로 카드 기본 스타일 */
+.route-card {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(18, 27, 48);
+    border-radius: 20px;
+    border-width: 2px;
+    border-color: rgba(41, 69, 159, 0.38);
+    padding-top: 28px;
+    padding-bottom: 28px;
+    padding-left: 24px;
+    padding-right: 24px;
+    margin-bottom: 20px;
+}
+
+.route-card:hover {
+    background-color: rgb(22, 33, 60);
+    border-color: rgba(41, 69, 159, 0.65);
+}
+
+/* 선택된 경로 카드: 강조 테두리 + 약간 밝은 배경 */
+.route-card--selected {
+    border-color: rgb(41, 69, 159);
+    background-color: rgb(24, 38, 72);
+}
+
+/* 번호 뱃지 (원형 딥 블루) */
+.route-card-badge {
+    width: 68px;
+    height: 68px;
+    background-color: rgb(41, 69, 159);
+    border-top-left-radius: 34px;
+    border-top-right-radius: 34px;
+    border-bottom-left-radius: 34px;
+    border-bottom-right-radius: 34px;
+    align-items: center;
+    justify-content: center;
+    margin-right: 22px;
+    flex-shrink: 0;
+}
+
+/* 번호 뱃지 텍스트 */
+.route-badge-label {
+    font-size: 32px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+/* 경로 정보 텍스트 영역 (중간 flex-grow) */
+.route-card-info {
+    flex-grow: 1;
+}
+
+/* 경로 이름 (주 텍스트) */
+.route-card-title {
+    font-size: 30px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+}
+
+/* 경로 설명 (보조 텍스트) */
+.route-card-desc {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 14px;
+}
+
+/* 거리·시간 태그 행 */
+.route-card-meta {
+    flex-direction: row;
+}
+
+/* 개별 메타 태그 (둥근 배경) */
+.route-meta-tag {
+    background-color: rgba(41, 69, 159, 0.32);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 14px;
+    padding-right: 14px;
+    margin-right: 10px;
+}
+
+/* 메타 태그 텍스트 (밝은 파랑) */
+.route-meta-text {
+    font-size: 20px;
+    color: rgb(100, 140, 230);
+}
+
+/* 카드 우측 화살표 표시자 */
+.route-card-chevron {
+    font-size: 36px;
+    color: rgba(41, 69, 159, 0.70);
+    -unity-text-align: middle-right;
+    margin-left: 14px;
+    flex-shrink: 0;
+}

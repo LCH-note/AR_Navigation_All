@@ -1,39 +1,40 @@
 <!--
     파일명: Assets/UI Toolkit/RouteSelectScreen.uxml
-    역할: 사용자가 이동할 목적지(경로)를 선택하는 화면
-    변경 내용:
-      - "내비게이션 시작" 버튼 추가 (btn-start-navigation)
-        → UIManager 에서 이 버튼 클릭 시 ARMapScreen 으로 전환
+    역할: 경로 선택 화면 레이아웃 (구조만 정의)
+    경로 카드는 RouteSelectController.cs 에서 백엔드 데이터로 동적 생성
 -->
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    xsi="http://www.w3.org/2001/XMLSchema-instance"
+    engine="UnityEngine.UIElements"
+    editor="UnityEditor.UIElements"
+    noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+    editor-extension-mode="False">
 
-    <!-- 공통 스타일 시트 -->
     <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=dbb4c00365d49134d8a69a7f1ff0ce9e&amp;type=3#NewUSSFile" />
 
-    <!-- 경로 선택 화면 컨테이너 -->
     <ui:VisualElement name="route-select-screen" class="screen">
 
         <!-- 상단 헤더 -->
         <ui:VisualElement class="sub-screen-header">
-            <!-- 메인 화면으로 돌아가기 -->
             <ui:Button text="Back" name="btn-back-route" class="back-button" />
             <ui:Label text="경로 선택" class="header-title" />
         </ui:VisualElement>
 
-        <!-- 목적지 목록 영역 (추후 ScrollView + 목적지 버튼으로 교체 예정) -->
-        <ui:VisualElement class="content-area">
-            <ui:Label text="[ 목적지 목록 ]" class="placeholder-text" />
-        </ui:VisualElement>
-
         <!--
-            내비게이션 시작 버튼
-            UIManager 가 이 버튼 클릭을 감지해 ARMapScreen 으로 전환
-            name 값이 UIManager.cs 의 "btn-start-navigation" 과 일치해야 함
+            경로 카드 목록 컨테이너
+            RouteSelectController.cs 에서 이 ScrollView 안에 카드를 동적으로 추가
         -->
+        <ui:ScrollView name="route-scroll" class="route-scroll-view"
+                       vertical-scroller-visibility="Hidden" />
+
+        <!-- 내비게이션 시작 버튼 (경로 선택 전 비활성) -->
         <ui:Button
             text="내비게이션 시작"
             name="btn-start-navigation"
-            class="start-nav-button" />
+            class="start-nav-button start-nav-button--disabled" />
 
     </ui:VisualElement>
+
 </ui:UXML>

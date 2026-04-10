@@ -90,23 +90,8 @@
         <!-- ── 중간 콘텐츠 영역 끝 ─────────────────────────────── -->
 
 
-        <!-- ── 하단 HUD (항상 표시) ─────────────────────────────── -->
-        <ui:VisualElement name="hud-bottom" class="ar-hud ar-hud-bottom">
-
-            <!-- 현재 내비게이션 안내 문구 (ARMapScreenController가 동적으로 변경) -->
-            <ui:Label
-                text="직진하세요"
-                name="label-nav-instruction"
-                class="nav-instruction" />
-
-            <!-- 목적지까지 남은 거리 -->
-            <ui:Label
-                text="약 15m"
-                name="label-nav-distance"
-                class="nav-distance" />
-
-        </ui:VisualElement>
-        <!-- ── 하단 HUD 끝 ────────────────────────────────────── -->
+        <!-- 하단 HUD 제거: AR 내비게이션은 3D 화살표만으로 방향을 안내하며
+             별도 텍스트 지시문은 표시하지 않습니다 -->
 
     </ui:VisualElement>
     <!-- ── ar-map-screen 끝 ──────────────────────────────────── -->
