@@ -167,15 +167,23 @@ public class UIManager : MonoBehaviour
 
         if (selectedRoute == null)
         {
-            Debug.LogWarning("UIManager: 경로가 선택되지 않았습니다. 내비게이션을 시작할 수 없습니다.");
+            Debug.LogWarning("UIManager: 경로가 선택되지 않았습니다. 카드를 먼저 선택해주세요.");
             return;
         }
 
-        // AR 내비게이션 시작 (화살표 배치)
-        arNavigationController?.StartNavigation(selectedRoute);
-
+        // 화면 전환을 먼저 실행 (StartNavigation 내부 예외와 무관하게 화면이 전환되도록)
         ShowScreen(_arMapScreen);
-        Debug.Log($"UIManager: 내비게이션 시작 → {selectedRoute.routeName}");
+        Debug.Log($"UIManager: AR 화면으로 전환 → {selectedRoute.routeName}");
+
+        // 화면 전환 후 내비게이션 시작 (예외가 발생해도 화면 전환에는 영향 없음)
+        try
+        {
+            arNavigationController?.StartNavigation(selectedRoute);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"UIManager: StartNavigation 예외 발생 (화살표 배치 실패): {e.Message}");
+        }
     }
 
     // AR 화면 "← 나가기" → 메인 화면 (내비게이션 종료 포함)

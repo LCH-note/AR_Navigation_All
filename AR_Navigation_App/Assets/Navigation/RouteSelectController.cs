@@ -119,7 +119,12 @@ public class RouteSelectController : MonoBehaviour
         {
             int capturedIndex = i; // 클로저 캡처
             var card = CreateCard(_routes[i], i + 1);
-            card.RegisterCallback<ClickEvent>(_ => OnCardClicked(capturedIndex));
+
+            // Clickable manipulator 사용:
+            // Button이 내부적으로 사용하는 방식으로, 모바일 터치와 마우스 클릭을
+            // 모두 안정적으로 처리. ScrollView 내부에서도 정상 동작.
+            card.AddManipulator(new Clickable(() => OnCardClicked(capturedIndex)));
+
             _scrollView.Add(card);
             _cards[i] = card;
         }
@@ -224,8 +229,13 @@ public class RouteSelectController : MonoBehaviour
     private void ApplyStartButtonState(bool enabled)
     {
         if (_btnStartNavigation == null) return;
-        _btnStartNavigation.SetEnabled(enabled);
 
+        // SetEnabled(false)로 비활성화하면 Unity UI Toolkit에서 clicked 이벤트 자체가
+        // 발생하지 않아 UIManager의 OnStartNavigationClicked()가 호출되지 않음.
+        // 버튼은 항상 활성 상태로 두고, 미선택 시 경고는 UIManager에서 처리.
+        _btnStartNavigation.SetEnabled(true);
+
+        // 시각적 스타일만 미선택/선택 상태에 따라 전환
         if (enabled)
             _btnStartNavigation.RemoveFromClassList("start-nav-button--disabled");
         else

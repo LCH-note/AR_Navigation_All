@@ -2,16 +2,14 @@
     파일명: Assets/Navigation/ARNavigationController.cs
     역할: AR 공간에 3D 화살표를 배치해 사용자를 경로 안내하는 핵심 컨트롤러
     주요 기능:
-      1. [화살표 배치] 선택된 경로의 웨이포인트 위치에 3D 화살표 오브젝트를 배치
-         - 현재 목표 화살표: 크고 밝게 (진한 딥 블루)
-         - 이후 화살표: 작고 흐리게 (연한 블루)
+      1. [플로팅 화살표] 카메라 앞 고정 거리에 항상 화살표를 표시 — 항상 화면에 보임
+         - 매 프레임 카메라 위치를 따라 이동 (카메라에서 floatForwardDistance 앞)
+         - Y축만 회전해 다음 웨이포인트 방향을 가리킴
       2. [웨이포인트 추적] 카메라가 웨이포인트 도달 거리 내로 들어오면 다음 지점으로 진행
       3. [Immersal 연동] useImmersalPositioning = true 시 XRSpace 기준 좌표 사용
          (false = 시작 시 카메라 위치/방향 기준 좌표 — 기기 테스트용)
-      4. [HUD 업데이트] ARMapScreen 하단 HUD 의 안내 문구·거리 레이블 실시간 업데이트
     연동:
       - UIManager 에서 StartNavigation(route), StopNavigation() 호출
-      - ARMapScreenController 와 동일한 UIDocument 공유
 */
 
 using System.Collections.Generic;
@@ -24,21 +22,22 @@ public class ARNavigationController : MonoBehaviour
     [Tooltip("씬의 AR Camera (XR Origin > Main Camera)")]
     [SerializeField] private Camera arCamera;
 
-    // UIDocument 는 더 이상 사용하지 않음
-    // AR 화면은 3D 화살표만으로 방향을 안내하며 텍스트 지시문 없음
-
     [Header("내비게이션 설정")]
     [Tooltip("이 거리(m) 이내로 접근하면 다음 웨이포인트로 이동")]
     [SerializeField] private float waypointReachDistance = 2.0f;
 
-    [Tooltip("화살표 배치 높이 오프셋 (m, 지면 기준)")]
-    [SerializeField] private float arrowHeightOffset = 0.05f;
+    [Header("플로팅 화살표 설정 (항상 화면에 표시)")]
+    [Tooltip("카메라로부터 화살표까지의 전방 거리 (m)")]
+    [SerializeField] private float floatForwardDistance = 1.5f;
 
-    [Tooltip("화살표 전체 스케일 배수")]
-    [SerializeField] private float arrowScale = 0.6f;
+    [Tooltip("카메라 높이 기준 화살표 세로 오프셋 (m, 음수=아래)")]
+    [SerializeField] private float floatHeightOffset = -0.25f;
 
-    [Tooltip("한 번에 표시할 최대 화살표 수 (앞쪽 N개)")]
-    [SerializeField] private int   maxVisibleArrows = 3;
+    [Tooltip("방향 전환 시 화살표 회전 부드러움 (높을수록 빠름)")]
+    [SerializeField] private float rotationSpeed = 6f;
+
+    [Tooltip("화살표 전체 스케일")]
+    [SerializeField] private float arrowScale = 1.0f;
 
     [Header("Immersal 설정 (선택)")]
     [Tooltip("true: Immersal XRSpace 기준 좌표 사용 / false: 시작 시 카메라 기준 좌표 사용")]
@@ -55,16 +54,14 @@ public class ARNavigationController : MonoBehaviour
     // 내비게이션 시작 시점 원점 (로컬→월드 변환용)
     private Matrix4x4 _localToWorld;
 
-    // 생성된 화살표 오브젝트 목록 (매 웨이포인트 전진마다 재생성)
-    private readonly List<GameObject> _spawnedArrows = new List<GameObject>();
+    // 화면에 항상 표시되는 플로팅 방향 화살표
+    private GameObject _floatingArrow;
 
-    // AR 내비게이션은 3D 화살표만으로 안내 — UI 레이블 없음
+    // 화살표 색상 (딥 블루 계열)
+    private static readonly Color ColorArrow = new Color(0.10f, 0.45f, 1.00f);
 
-    // ── 화살표 색상 (팔레트: 딥 블루 계열) ─────────────────────────
-    // 현재 목표 웨이포인트 화살표 색
-    private static readonly Color ColorCurrent = new Color(0.10f, 0.45f, 1.00f);
-    // 이후 웨이포인트 화살표 색 (어두운 파랑)
-    private static readonly Color ColorFuture  = new Color(0.08f, 0.28f, 0.65f);
+    // 도착 판정 완료 여부 (중복 호출 방지)
+    private bool _arrivedHandled = false;
 
     // ════════════════════════════════════════════════════════════════
     //  공개 메서드 (UIManager 에서 호출)
@@ -72,7 +69,7 @@ public class ARNavigationController : MonoBehaviour
 
     /// <summary>
     /// 경로 선택 후 AR 화면 진입 시 UIManager 가 호출합니다.
-    /// 웨이포인트 인덱스를 초기화하고 화살표를 AR 공간에 배치합니다.
+    /// 웨이포인트 인덱스를 초기화하고 플로팅 화살표를 생성합니다.
     /// </summary>
     public void StartNavigation(NavRoute route)
     {
@@ -85,24 +82,25 @@ public class ARNavigationController : MonoBehaviour
         _currentRoute         = route;
         _currentWaypointIndex = 0;
         _isNavigating         = true;
+        _arrivedHandled       = false;
 
         // 내비게이션 원점 계산 (로컬→월드 변환 행렬 확정)
         ComputeNavigationOrigin();
 
-        // 화살표 배치
-        RefreshArrows();
+        // 플로팅 화살표 생성 (카메라 앞에 항상 표시)
+        CreateFloatingArrow();
 
         Debug.Log($"ARNavigationController: 내비게이션 시작 → {route.routeName}");
     }
 
     /// <summary>
     /// AR 화면 나가기 시 UIManager 가 호출합니다.
-    /// 화살표를 모두 삭제하고 내비게이션 상태를 초기화합니다.
+    /// 화살표를 삭제하고 내비게이션 상태를 초기화합니다.
     /// </summary>
     public void StopNavigation()
     {
         _isNavigating = false;
-        ClearArrows();
+        DestroyFloatingArrow();
         _currentRoute = null;
         Debug.Log("ARNavigationController: 내비게이션 종료");
     }
@@ -114,18 +112,18 @@ public class ARNavigationController : MonoBehaviour
     void Update()
     {
         if (!_isNavigating) return;
+        if (arCamera == null) return;
 
-        // 현재 웨이포인트 도달 여부 검사
+        // 플로팅 화살표를 카메라 앞 위치로 이동 + 웨이포인트 방향으로 회전
+        UpdateFloatingArrow();
+
+        // 웨이포인트 도달 여부 검사
         CheckWaypointReached();
-
-        // 현재 화살표 위아래 진동 (눈에 잘 띄도록)
-        AnimateCurrentArrow();
     }
 
     void OnDestroy()
     {
-        // 씬 정리 시 화살표 오브젝트도 함께 삭제
-        ClearArrows();
+        DestroyFloatingArrow();
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -135,7 +133,6 @@ public class ARNavigationController : MonoBehaviour
     /// <summary>
     /// 내비게이션 시작 시점의 카메라(또는 ImmersalXRSpace) 위치/방향을 기준으로
     /// 로컬→월드 변환 행렬을 계산합니다.
-    /// 이 행렬을 사용해 NavWaypoint.localPosition 을 월드 좌표로 변환합니다.
     /// </summary>
     private void ComputeNavigationOrigin()
     {
@@ -144,19 +141,24 @@ public class ARNavigationController : MonoBehaviour
 
         if (useImmersalPositioning && immersalXRSpace != null)
         {
-            // Immersal 이 제공하는 좌표 공간을 기준으로 사용
             origin   = immersalXRSpace.position;
             rotation = immersalXRSpace.rotation;
             Debug.Log("ARNavigationController: Immersal XRSpace 기준 좌표 사용");
         }
         else
         {
-            // AR 카메라 기준 (수평면 투영)
-            // 카메라 높이(Y)는 무시하고 지면(Y=0) 기준으로 원점 설정
-            Vector3 camPos     = arCamera.transform.position;
-            Vector3 camForward = arCamera.transform.forward;
+            if (arCamera == null)
+            {
+                Debug.LogWarning("ARNavigationController: arCamera 가 연결되지 않았습니다. " +
+                                 "Inspector 에서 XR Origin > Main Camera 를 연결해주세요. " +
+                                 "세계 원점(0,0,0) 기준으로 대체합니다.");
+                _localToWorld = Matrix4x4.identity;
+                return;
+            }
 
             // 카메라 정면을 수평면에 투영해 진행 방향 결정
+            Vector3 camPos     = arCamera.transform.position;
+            Vector3 camForward = arCamera.transform.forward;
             Vector3 forwardFlat = Vector3.ProjectOnPlane(camForward, Vector3.up).normalized;
 
             // Y를 0으로 고정해 지면 기준 원점
@@ -165,54 +167,96 @@ public class ARNavigationController : MonoBehaviour
             Debug.Log("ARNavigationController: 카메라 기준 좌표 사용 (시뮬레이션 모드)");
         }
 
-        // 로컬→월드 변환 행렬 확정
         _localToWorld = Matrix4x4.TRS(origin, rotation, Vector3.one);
     }
 
     // ════════════════════════════════════════════════════════════════
-    //  화살표 배치 / 삭제
+    //  플로팅 화살표 생성 / 업데이트 / 삭제
     // ════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// 현재 웨이포인트부터 maxVisibleArrows 개의 화살표를 새로 배치합니다.
-    /// 웨이포인트를 하나 전진할 때마다 호출됩니다.
+    /// 카메라 앞 초기 위치에 플로팅 화살표를 생성합니다.
     /// </summary>
-    private void RefreshArrows()
+    private void CreateFloatingArrow()
     {
-        ClearArrows();
+        DestroyFloatingArrow();
 
-        if (_currentRoute == null) return;
+        // 초기 위치: 카메라 앞 floatForwardDistance, 높이 floatHeightOffset 적용
+        Vector3 initPos = CalculateFloatPosition();
 
-        int placed = 0;
-        for (int i = _currentWaypointIndex; i < _currentRoute.waypoints.Length; i++)
+        _floatingArrow = CreateArrowObject("NavFloatingArrow", initPos, Vector3.forward, arrowScale, ColorArrow);
+        Debug.Log("ARNavigationController: 플로팅 화살표 생성 완료");
+    }
+
+    /// <summary>
+    /// 매 프레임 화살표를 카메라 앞 위치로 이동하고
+    /// 다음 웨이포인트 방향으로 Y축 회전합니다.
+    /// </summary>
+    private void UpdateFloatingArrow()
+    {
+        if (_floatingArrow == null) return;
+
+        // ── 위치 업데이트 ──
+        // 카메라 수평 전방 벡터 (Y 성분 제거)
+        Vector3 camPos     = arCamera.transform.position;
+        Vector3 camForward = arCamera.transform.forward;
+        Vector3 flatForward = new Vector3(camForward.x, 0f, camForward.z);
+
+        // 카메라가 정면을 거의 수직으로 바라볼 때 (완전히 위/아래) 폴백
+        if (flatForward.sqrMagnitude < 0.001f)
+            flatForward = new Vector3(camForward.x, 0f, camForward.z) + Vector3.forward * 0.001f;
+        flatForward.Normalize();
+
+        Vector3 floatPos = camPos + flatForward * floatForwardDistance;
+        floatPos.y = camPos.y + floatHeightOffset;
+
+        _floatingArrow.transform.position = floatPos;
+
+        // ── 방향 업데이트: 다음 웨이포인트를 향한 Y축 회전 ──
+        if (_currentWaypointIndex < _currentRoute.waypoints.Length)
         {
-            // 로컬 좌표 → 월드 좌표 변환
-            Vector3 worldPos = LocalToWorldPoint(_currentRoute.waypoints[i].localPosition);
-            // 화살표 높이 고정
-            worldPos.y = arrowHeightOffset;
+            Vector3 wpWorld = LocalToWorldPoint(
+                _currentRoute.waypoints[_currentWaypointIndex].localPosition);
 
-            // 이 화살표가 가리킬 방향 계산 (다음 웨이포인트 방향)
-            Vector3 lookDir = CalculateLookDirection(i);
+            Vector3 dirToWp = wpWorld - floatPos;
+            dirToWp.y = 0f; // 수평 방향만
 
-            bool    isCurrent = (i == _currentWaypointIndex);
-            float   scale     = isCurrent ? arrowScale * 1.3f : arrowScale * 0.75f;
-            Color   color     = isCurrent ? ColorCurrent : ColorFuture;
-
-            GameObject arrow = CreateArrowObject($"NavArrow_{i}", worldPos, lookDir, scale, color);
-            _spawnedArrows.Add(arrow);
-
-            placed++;
-            if (placed >= maxVisibleArrows) break;
+            if (dirToWp.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(dirToWp.normalized, Vector3.up);
+                // 부드러운 회전 보간
+                _floatingArrow.transform.rotation = Quaternion.Slerp(
+                    _floatingArrow.transform.rotation,
+                    targetRot,
+                    Time.deltaTime * rotationSpeed);
+            }
         }
     }
 
-    private void ClearArrows()
+    private void DestroyFloatingArrow()
     {
-        foreach (var obj in _spawnedArrows)
+        if (_floatingArrow != null)
         {
-            if (obj != null) Destroy(obj);
+            Destroy(_floatingArrow);
+            _floatingArrow = null;
         }
-        _spawnedArrows.Clear();
+    }
+
+    /// <summary>
+    /// 카메라 앞 floatForwardDistance 위치를 계산합니다.
+    /// </summary>
+    private Vector3 CalculateFloatPosition()
+    {
+        if (arCamera == null) return Vector3.forward * floatForwardDistance;
+
+        Vector3 camPos     = arCamera.transform.position;
+        Vector3 camForward = arCamera.transform.forward;
+        Vector3 flatForward = new Vector3(camForward.x, 0f, camForward.z).normalized;
+        if (flatForward.sqrMagnitude < 0.001f) flatForward = Vector3.forward;
+
+        Vector3 pos = camPos + flatForward * floatForwardDistance;
+        pos.y = camPos.y + floatHeightOffset;
+        return pos;
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -241,15 +285,13 @@ public class ARNavigationController : MonoBehaviour
         if (direction != Vector3.zero)
             parent.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
 
-        // 재질 생성 (URP Unlit — AR 환경에서 조명과 무관하게 밝게 표시)
         Material mat = CreateArrowMaterial(color);
 
         // ── 줄기 (Cube) ──────────────────────────────────────────────
         var shaft = GameObject.CreatePrimitive(PrimitiveType.Cube);
         shaft.name = "Shaft";
         shaft.transform.SetParent(parent.transform, false);
-        // 화살표 뒤쪽(-Z)에 배치
-        shaft.transform.localPosition = new Vector3(0f, 0.05f, -0.15f);
+        shaft.transform.localPosition = new Vector3(0f, 0f, -0.15f);
         shaft.transform.localScale    = new Vector3(0.13f, 0.10f, 0.48f) * scale;
         shaft.GetComponent<Renderer>().sharedMaterial = mat;
         Destroy(shaft.GetComponent<Collider>());
@@ -258,7 +300,7 @@ public class ARNavigationController : MonoBehaviour
         var headL = GameObject.CreatePrimitive(PrimitiveType.Cube);
         headL.name = "HeadLeft";
         headL.transform.SetParent(parent.transform, false);
-        headL.transform.localPosition = new Vector3(-0.18f, 0.05f, 0.12f);
+        headL.transform.localPosition = new Vector3(-0.18f, 0f, 0.12f);
         headL.transform.localRotation = Quaternion.Euler(0f, 40f, 0f);
         headL.transform.localScale    = new Vector3(0.13f, 0.10f, 0.40f) * scale;
         headL.GetComponent<Renderer>().sharedMaterial = mat;
@@ -268,7 +310,7 @@ public class ARNavigationController : MonoBehaviour
         var headR = GameObject.CreatePrimitive(PrimitiveType.Cube);
         headR.name = "HeadRight";
         headR.transform.SetParent(parent.transform, false);
-        headR.transform.localPosition = new Vector3(0.18f, 0.05f, 0.12f);
+        headR.transform.localPosition = new Vector3(0.18f, 0f, 0.12f);
         headR.transform.localRotation = Quaternion.Euler(0f, -40f, 0f);
         headR.transform.localScale    = new Vector3(0.13f, 0.10f, 0.40f) * scale;
         headR.GetComponent<Renderer>().sharedMaterial = mat;
@@ -303,8 +345,8 @@ public class ARNavigationController : MonoBehaviour
     {
         if (_currentWaypointIndex >= _currentRoute.waypoints.Length) return;
 
-        // 카메라 위치 (Y 무시, 수평 거리만 측정)
-        Vector3 userPos = arCamera.transform.position;
+        // 카메라 수평 위치 (Y 무시)
+        Vector3 userPos  = arCamera.transform.position;
         Vector2 userFlat = new Vector2(userPos.x, userPos.z);
 
         // 현재 목표 웨이포인트 월드 위치
@@ -320,43 +362,25 @@ public class ARNavigationController : MonoBehaviour
 
             if (_currentWaypointIndex >= _currentRoute.waypoints.Length)
             {
-                // 목적지 도착
                 OnNavigationComplete();
             }
             else
             {
                 Debug.Log($"ARNavigationController: 웨이포인트 도달 " +
                           $"[{_currentWaypointIndex}/{_currentRoute.waypoints.Length}]");
-                RefreshArrows();
+                // 다음 웨이포인트 방향으로 회전은 UpdateFloatingArrow()가 자동 처리
             }
         }
     }
 
     private void OnNavigationComplete()
     {
+        if (_arrivedHandled) return;
+        _arrivedHandled = true;
+
         _isNavigating = false;
-        // 모든 화살표 제거 — 화살표가 사라지는 것으로 도착을 표시
-        ClearArrows();
+        DestroyFloatingArrow();
         Debug.Log($"ARNavigationController: {_currentRoute.destination} 도착 완료!");
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  현재 화살표 진동 애니메이션
-    // ════════════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// 현재 목표 웨이포인트 화살표를 위아래로 진동시킵니다.
-    /// 사용자가 AR 화면에서 화살표를 쉽게 발견하도록 합니다.
-    /// </summary>
-    private void AnimateCurrentArrow()
-    {
-        if (_spawnedArrows.Count == 0 || _spawnedArrows[0] == null) return;
-
-        // 사인파 기반 부드러운 진동 (주기 약 2초)
-        float bounce = Mathf.Sin(Time.time * 2.5f) * 0.04f;
-        var pos = _spawnedArrows[0].transform.position;
-        _spawnedArrows[0].transform.position =
-            new Vector3(pos.x, arrowHeightOffset + bounce, pos.z);
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -367,33 +391,5 @@ public class ARNavigationController : MonoBehaviour
     private Vector3 LocalToWorldPoint(Vector3 localPos)
     {
         return _localToWorld.MultiplyPoint3x4(localPos);
-    }
-
-    /// <summary>
-    /// i번째 웨이포인트가 가리켜야 할 방향(다음 웨이포인트 방향)을 계산합니다.
-    /// 마지막 웨이포인트라면 이전 웨이포인트로부터의 진입 방향을 유지합니다.
-    /// </summary>
-    private Vector3 CalculateLookDirection(int waypointIndex)
-    {
-        Vector3 currentWorld = LocalToWorldPoint(_currentRoute.waypoints[waypointIndex].localPosition);
-
-        if (waypointIndex + 1 < _currentRoute.waypoints.Length)
-        {
-            // 다음 웨이포인트 방향 (수평 평면 투영)
-            Vector3 nextWorld = LocalToWorldPoint(_currentRoute.waypoints[waypointIndex + 1].localPosition);
-            Vector3 dir = nextWorld - currentWorld;
-            dir.y = 0f;
-            return dir.normalized != Vector3.zero ? dir.normalized : Vector3.forward;
-        }
-        else if (waypointIndex > 0)
-        {
-            // 마지막 지점: 이전→현재 방향 유지
-            Vector3 prevWorld = LocalToWorldPoint(_currentRoute.waypoints[waypointIndex - 1].localPosition);
-            Vector3 dir = currentWorld - prevWorld;
-            dir.y = 0f;
-            return dir.normalized != Vector3.zero ? dir.normalized : Vector3.forward;
-        }
-
-        return Vector3.forward;
     }
 }
