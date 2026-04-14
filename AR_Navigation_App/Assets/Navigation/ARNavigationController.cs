@@ -22,6 +22,10 @@ public class ARNavigationController : MonoBehaviour
     [Tooltip("씬의 AR Camera (XR Origin > Main Camera)")]
     [SerializeField] private Camera arCamera;
 
+    [Tooltip("블렌더로 제작한 화살표 Prefab (Assets/Models/ArrowModel.prefab). " +
+             "연결 시 Prefab을 사용하고, 미연결 시 런타임 프리미티브로 대체합니다.")]
+    [SerializeField] private GameObject arrowPrefab;
+
     [Header("내비게이션 설정")]
     [Tooltip("이 거리(m) 이내로 접근하면 다음 웨이포인트로 이동")]
     [SerializeField] private float waypointReachDistance = 2.0f;
@@ -176,6 +180,8 @@ public class ARNavigationController : MonoBehaviour
 
     /// <summary>
     /// 카메라 앞 초기 위치에 플로팅 화살표를 생성합니다.
+    /// arrowPrefab 이 연결된 경우 Prefab을 Instantiate 하고,
+    /// 미연결 시 런타임 프리미티브(Cube 조합)로 대체합니다.
     /// </summary>
     private void CreateFloatingArrow()
     {
@@ -184,8 +190,26 @@ public class ARNavigationController : MonoBehaviour
         // 초기 위치: 카메라 앞 floatForwardDistance, 높이 floatHeightOffset 적용
         Vector3 initPos = CalculateFloatPosition();
 
-        _floatingArrow = CreateArrowObject("NavFloatingArrow", initPos, Vector3.forward, arrowScale, ColorArrow);
-        Debug.Log("ARNavigationController: 플로팅 화살표 생성 완료");
+        if (arrowPrefab != null)
+        {
+            // Prefab Instantiate — 머티리얼/셰이더가 에셋에 포함되어 빌드 시 제외되지 않음
+            _floatingArrow = Instantiate(arrowPrefab, initPos, Quaternion.identity);
+            _floatingArrow.name = "NavFloatingArrow";
+            _floatingArrow.transform.localScale = Vector3.one * arrowScale;
+
+            // AR 평면 메시의 깊이 버퍼에 가려지지 않도록 ZTest를 Always로 설정
+            // (ARFoundation이 감지한 바닥·벽 평면이 depth를 쓰면 화살표가 사라지는 현상 방지)
+            SetZTestAlways(_floatingArrow);
+
+            Debug.Log("ARNavigationController: Prefab 화살표 생성 완료");
+        }
+        else
+        {
+            // Fallback: 런타임 프리미티브 조합 (에디터 테스트용)
+            _floatingArrow = CreateArrowObject("NavFloatingArrow", initPos, Vector3.forward, arrowScale, ColorArrow);
+            Debug.LogWarning("ARNavigationController: arrowPrefab 미연결 — 런타임 프리미티브로 대체합니다. " +
+                             "Inspector 에서 Assets/Models/ArrowModel.prefab 을 연결해 주세요.");
+        }
     }
 
     /// <summary>
@@ -391,5 +415,24 @@ public class ARNavigationController : MonoBehaviour
     private Vector3 LocalToWorldPoint(Vector3 localPos)
     {
         return _localToWorld.MultiplyPoint3x4(localPos);
+    }
+
+    /// <summary>
+    /// 오브젝트(및 모든 하위 자식)의 머티리얼 ZTest를 Always로 설정합니다.
+    /// AR 평면 메시가 깊이 버퍼에 기록되어 화살표를 가리는 현상을 방지합니다.
+    /// UnityEngine.Rendering.CompareFunction.Always = 8
+    /// </summary>
+    private void SetZTestAlways(GameObject root)
+    {
+        foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+        {
+            // 원본 에셋 머티리얼을 건드리지 않기 위해 인스턴스 머티리얼 사용
+            foreach (var mat in renderer.materials)
+            {
+                // ZTest Always(8): 깊이 비교 없이 항상 렌더링
+                mat.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+                mat.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+            }
+        }
     }
 }
