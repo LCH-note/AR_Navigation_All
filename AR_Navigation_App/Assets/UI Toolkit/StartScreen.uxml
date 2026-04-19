@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=dbb4c00365d49134d8a69a7f1ff0ce9e&amp;type=3#NewUSSFile" />
+    <ui:VisualElement name="start-screen" class="screen start-screen">
+        <ui:VisualElement name="logo-label-image" class="logo-label-image" style="background-image: url(&quot;project://database/Assets/UI%20Toolkit/image/Icon_Logo_image.jpg?fileID=2800000&amp;guid=6a2e9d8a5d9662047980e2ad051dfa41&amp;type=3#Icon_Logo_image&quot;); -unity-background-image-tint-color: rgb(255, 255, 255); margin-bottom: 50px; width: 220px; padding-bottom: 0;" />
+        <ui:Button text="Start" name="btn-start" class="start-button" style="height: 93px; width: 241px; font-size: 50px;" />
+    </ui:VisualElement>
+</ui:UXML>

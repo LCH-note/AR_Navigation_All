@@ -1,0 +1,27 @@
+<!-- 
+    파일명: Assets/UI Toolkit/MapScreen.uxml
+    역할: 전체 지도(Full Map)를 보여주는 화면을 정의합니다.
+    기능: 
+    - 상단 헤더와 뒤로가기 버튼
+    - 지도 컨텐츠가 들어갈 메인 영역 (현재는 placeholder)
+-->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <!-- 공통 스타일 시트 연결 -->
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=dbb4c00365d49134d8a69a7f1ff0ce9e&amp;type=3#NewUSSFile" />
+    
+    <!-- 지도 화면 컨테이너 -->
+    <ui:VisualElement name="map-screen" class="screen">
+        <!-- 상단 헤더 영역 -->
+        <ui:VisualElement class="sub-screen-header">
+            <!-- 메인 화면으로 돌아가는 뒤로가기 버튼 -->
+            <ui:Button text="Back" name="btn-back-map" class="back-button" />
+            <!-- 화면 제목 -->
+            <ui:Label text="Full Map" class="header-title" />
+        </ui:VisualElement>
+        
+        <!-- 지도 컨텐츠 영역 (이미지나 3D 뷰가 들어갈 자리) -->
+        <ui:VisualElement class="content-area">
+            <ui:Label text="[ Map View Placeholder ]" class="placeholder-text" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
