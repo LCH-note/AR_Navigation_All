@@ -1,0 +1,51 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+
+    <!-- === 템플릿 정의: 각 화면 UXML 을 재사용 가능한 템플릿으로 등록 === -->
+    <ui:Template name="StartScreen"       src="project://database/Assets/UI%20Toolkit/StartScreen.uxml" />
+    <ui:Template name="MainScreen"        src="project://database/Assets/UI%20Toolkit/MainScreen.uxml" />
+    <ui:Template name="MapScreen"         src="project://database/Assets/UI%20Toolkit/MapScreen.uxml" />
+    <ui:Template name="RouteSelectScreen" src="project://database/Assets/UI%20Toolkit/RouteSelectScreen.uxml" />
+    <!-- AR 내비게이션 실행 화면: 투명 배경 + 가속도계 지도 표시 -->
+    <ui:Template name="ARMapScreen"       src="project://database/Assets/UI%20Toolkit/ARMapScreen.uxml" />
+
+    <!-- 공통 스타일 시트 -->
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss" />
+
+    <!-- === 앱 루트 컨테이너 === -->
+    <ui:VisualElement name="root" style="flex-grow: 1; width: 100%; height: 100%;">
+
+        <!-- 시작 화면: 앱 진입점, 초기 표시 -->
+        <ui:Instance template="StartScreen"
+                     name="StartScreenInstance"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 메인 메뉴 화면: 초기엔 숨김 -->
+        <ui:Instance template="MainScreen"
+                     name="MainScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 전체 지도 화면: 초기엔 숨김 -->
+        <ui:Instance template="MapScreen"
+                     name="MapScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 경로 선택 화면: 초기엔 숨김 -->
+        <ui:Instance template="RouteSelectScreen"
+                     name="RouteSelectScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!--
+            AR 내비게이션 화면: 초기엔 숨김
+            RouteSelectScreen 의 "내비게이션 시작" 버튼으로 진입
+            배경이 투명이므로 AR 카메라 영상이 보임
+        -->
+        <ui:Instance template="ARMapScreen"
+                     name="ARMapScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+    </ui:VisualElement>
+</ui:UXML>

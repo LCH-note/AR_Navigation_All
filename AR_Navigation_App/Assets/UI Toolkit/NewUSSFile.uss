@@ -1,0 +1,221 @@
+/*
+    파일명: Assets/UI Toolkit/NewUSSFile.uss
+    역할: 앱 전체 공통 스타일 시트
+    색상 기준: StartScreen 팔레트 통일
+    ─────────────────────────────────────
+    [ 색상 팔레트 ]
+    화면 배경   : rgb(16,  21,  31)  — 다크 네이비
+    컴포넌트 배경: rgb(18,  27,  48)  — 어두운 네이비 (버튼·헤더 등)
+    강조색      : rgb(41,  69, 159)  — 딥 블루 (테두리·강조 텍스트·CTA)
+    기본 텍스트  : rgb(255, 255, 255) — 흰색
+    보조 텍스트  : rgba(255, 255, 255, 0.45) — 반투명 흰색 (플레이스홀더 등)
+*/
+
+/* ══════════════════════════════════════════════
+   공통 화면 기본 스타일
+══════════════════════════════════════════════ */
+
+/* 모든 화면의 기본 레이아웃: 전체 영역을 덮는 절대 위치 */
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(16, 21, 31); /* 다크 네이비 배경 — StartScreen 기준 */
+}
+
+/* 화면 숨김: display:none 으로 레이아웃 공간도 제거 */
+.hidden {
+    display: none;
+}
+
+
+/* ══════════════════════════════════════════════
+   시작 화면 (StartScreen)
+══════════════════════════════════════════════ */
+
+/* 로고 이미지 컨테이너: 중앙 정렬, 둥근 모서리 */
+.logo-label-image {
+    width: 220px;
+    height: 220px;
+    background-size: contain;
+    margin-bottom: 50px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-top-left-radius: 20%;
+    border-top-right-radius: 20%;
+    border-bottom-left-radius: 20%;
+    border-bottom-right-radius: 20%;
+}
+
+/* 시작 화면 컨테이너: 로고 + 버튼을 세로 중앙 정렬 */
+.start-screen {
+    background-color: rgb(16, 21, 31); /* 다크 네이비 */
+    align-items: center;
+    justify-content: center;
+}
+
+/* 타이틀 텍스트 (사용 시) */
+.title-label {
+    font-size: 50px;
+    color: rgb(255, 255, 255); /* 흰색 */
+    -unity-font-style: bold;
+    margin-bottom: 50px;
+    -unity-text-align: middle-center;
+}
+
+/* Start 버튼 — 전체 팔레트의 기준 */
+.start-button {
+    width: 220px;
+    height: 70px;
+    background-color: rgb(18, 27, 48);   /* 어두운 네이비 버튼 */
+    color: rgb(41, 69, 159);             /* 딥 블루 텍스트 */
+    font-size: 28px;
+    border-radius: 35px;
+    border-width: 0;
+    -unity-font-style: bold;
+    justify-content: center;
+    align-items: center;
+}
+
+.start-button:hover {
+    background-color: rgb(22, 33, 60);   /* 약간 밝게 */
+    scale: 1.05;
+}
+
+.start-button:active {
+    background-color: rgb(12, 18, 32);   /* 약간 어둡게 */
+    scale: 0.95;
+}
+
+
+/* ══════════════════════════════════════════════
+   메인 화면 (MainScreen)
+══════════════════════════════════════════════ */
+
+/* 메인 화면 컨테이너: 버튼들을 세로 중앙 정렬 */
+.main-screen-container {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.logo-image {
+    width: 220px;
+    height: 220px;
+    background-size: contain;
+    margin-bottom: 40px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-top-left-radius: 20%;
+    border-top-right-radius: 20%;
+    border-bottom-left-radius: 20%;
+    border-bottom-right-radius: 20%;
+}
+
+/* 메인 메뉴 버튼 (View Full Map / Select Route)
+   — Start 버튼과 동일한 다크 네이비 배경 + 딥 블루 테두리 */
+.main-menu-button {
+    width: 80%;
+    height: 100px;
+    margin-bottom: 30px;
+    background-color: rgb(18, 27, 48);   /* 어두운 네이비 — Start 버튼 배경과 동일 */
+    border-radius: 15px;
+    border-width: 2px;
+    border-color: rgb(41, 69, 159);      /* 딥 블루 테두리 — Start 버튼 텍스트 색과 동일 */
+    font-size: 24px;
+    color: rgb(41, 69, 159);             /* 딥 블루 텍스트 */
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.main-menu-button:hover {
+    background-color: rgb(22, 33, 60);   /* hover: 약간 밝은 네이비 */
+}
+
+.main-menu-button:active {
+    background-color: rgb(12, 18, 32);   /* active: 약간 어두운 네이비 */
+}
+
+
+/* ══════════════════════════════════════════════
+   서브 화면 공통 헤더 (MapScreen / RouteSelectScreen)
+══════════════════════════════════════════════ */
+
+/* 상단 헤더 바: 뒤로가기 버튼 + 화면 제목 */
+.sub-screen-header {
+    height: 80px;
+    background-color: rgb(18, 27, 48);   /* 어두운 네이비 — 버튼 배경과 동일 */
+    flex-direction: row;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* 뒤로가기 버튼 */
+.back-button {
+    width: 80px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.08); /* 반투명 흰색 — 어두운 배경에 적합 */
+    color: rgb(255, 255, 255);           /* 흰색 텍스트 */
+    font-size: 16px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.20); /* 반투명 흰색 테두리 */
+}
+
+.back-button:active {
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* 헤더 제목 텍스트: 중앙 정렬, 뒤로가기 버튼 너비만큼 우측 패딩으로 보정 */
+.header-title {
+    flex-grow: 1;
+    font-size: 24px;
+    color: rgb(255, 255, 255);           /* 흰색 */
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    padding-right: 80px;
+}
+
+/* 화면 중앙 콘텐츠 영역 */
+.content-area {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 플레이스홀더 텍스트: 콘텐츠 미구현 안내 */
+.placeholder-text {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.45);    /* 반투명 흰색 — 다크 배경에 자연스럽게 */
+}
+
+
+/* ══════════════════════════════════════════════
+   경로 선택 화면 (RouteSelectScreen) — 내비게이션 시작 버튼
+══════════════════════════════════════════════ */
+
+/* 하단 고정 CTA 버튼: 강조색(딥 블루) 배경으로 주요 액션임을 표시 */
+.start-nav-button {
+    height: 72px;
+    margin-left: 24px;
+    margin-right: 24px;
+    margin-bottom: 32px;
+    background-color: rgb(41, 69, 159);  /* 딥 블루 — 팔레트 강조색 */
+    color: rgb(255, 255, 255);           /* 흰색 텍스트 */
+    font-size: 22px;
+    -unity-font-style: bold;
+    border-radius: 36px;
+    border-width: 0;
+}
+
+.start-nav-button:hover {
+    background-color: rgb(50, 85, 185);  /* hover: 약간 밝은 딥 블루 */
+}
+
+.start-nav-button:active {
+    background-color: rgb(30, 50, 120);  /* active: 약간 어두운 딥 블루 */
+    scale: 0.97;
+}
