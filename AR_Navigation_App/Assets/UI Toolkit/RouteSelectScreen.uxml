@@ -23,15 +23,24 @@
         </ui:VisualElement>
 
         <!--
-            경로 카드 목록 컨테이너
+            추천 경로 카드 목록 컨테이너
             RouteSelectController.cs 에서 이 ScrollView 안에 카드를 동적으로 추가
         -->
         <ui:ScrollView name="route-scroll" class="route-scroll-view"
                        vertical-scroller-visibility="Hidden" />
 
-        <!-- 내비게이션 시작 버튼 (경로 선택 전 비활성) -->
+        <!--
+            사용자 경로 선택 버튼: 전시품을 직접 골라 경로를 구성하는 화면으로 이동
+            RouteSelectScreenUser.uxml 화면으로 전환
+        -->
         <ui:Button
-            text="내비게이션 시작"
+            text="직접 전시품 선택하기"
+            name="btn-user-route"
+            class="user-route-button" />
+
+        <!-- 내비게이션 시작 버튼 (추천 경로 선택 전 비활성) -->
+        <ui:Button
+            text="추천 경로로 안내 시작"
             name="btn-start-navigation"
             class="start-nav-button start-nav-button--disabled" />
 

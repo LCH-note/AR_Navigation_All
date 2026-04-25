@@ -36,6 +36,115 @@ public class NavRoute
     public NavWaypoint[] waypoints;  // 경유 웨이포인트 배열 (순서대로 안내)
 }
 
+// ── 전시품 데이터 ──────────────────────────────────────────────────
+[System.Serializable]
+public class Exhibit
+{
+    public string exhibitId;      // 전시품 고유 ID
+    public string name;           // 전시품 이름 (UI 표시용)
+    public string artist;         // 작가/제작자
+    public string hall;           // 전시관 위치 (예: "A관 1층")
+    public Vector3 localPosition; // 내비게이션 시작 카메라 기준 로컬 좌표
+}
+
+// ── 목업 전시품 데이터 저장소 ──────────────────────────────────────
+// 실제 서비스 시 서버 API 응답으로 교체 예정
+public static class MockExhibits
+{
+    public static Exhibit[] GetAllExhibits()
+    {
+        return new Exhibit[]
+        {
+            new Exhibit
+            {
+                exhibitId     = "ex_001",
+                name          = "인상, 해돋이",
+                artist        = "클로드 모네",
+                hall          = "A관 1층",
+                localPosition = new Vector3(0f, 0f, 8f)
+            },
+            new Exhibit
+            {
+                exhibitId     = "ex_002",
+                name          = "별이 빛나는 밤",
+                artist        = "빈센트 반 고흐",
+                hall          = "A관 1층",
+                localPosition = new Vector3(5f, 0f, 12f)
+            },
+            new Exhibit
+            {
+                exhibitId     = "ex_003",
+                name          = "게르니카",
+                artist        = "파블로 피카소",
+                hall          = "B관 1층",
+                localPosition = new Vector3(10f, 0f, 10f)
+            },
+            new Exhibit
+            {
+                exhibitId     = "ex_004",
+                name          = "물랭 드 라 갈레트",
+                artist        = "피에르 오귀스트 르누아르",
+                hall          = "B관 1층",
+                localPosition = new Vector3(14f, 0f, 6f)
+            },
+            new Exhibit
+            {
+                exhibitId     = "ex_005",
+                name          = "진주 귀걸이를 한 소녀",
+                artist        = "요하네스 페르메이르",
+                hall          = "C관 2층",
+                localPosition = new Vector3(-3f, 3f, 18f)
+            },
+            new Exhibit
+            {
+                exhibitId     = "ex_006",
+                name          = "수련",
+                artist        = "클로드 모네",
+                hall          = "C관 2층",
+                localPosition = new Vector3(2f, 3f, 22f)
+            },
+        };
+    }
+
+    /// <summary>
+    /// 사용자가 선택한 전시품 목록으로 NavRoute 를 생성합니다.
+    /// 선택 순서가 경유 순서가 됩니다.
+    /// </summary>
+    public static NavRoute CreateUserRoute(Exhibit[] selectedExhibits)
+    {
+        if (selectedExhibits == null || selectedExhibits.Length == 0)
+            return null;
+
+        var waypoints = new NavWaypoint[selectedExhibits.Length];
+        for (int i = 0; i < selectedExhibits.Length; i++)
+        {
+            waypoints[i] = new NavWaypoint
+            {
+                localPosition = selectedExhibits[i].localPosition,
+                instruction   = $"{selectedExhibits[i].name} 도착"
+            };
+        }
+
+        // 전시품 이름 목록으로 경로 이름 생성 (최대 2개 표시 후 '외 N개')
+        string routeName;
+        if (selectedExhibits.Length <= 2)
+            routeName = string.Join(" → ", System.Array.ConvertAll(selectedExhibits, e => e.name));
+        else
+            routeName = $"{selectedExhibits[0].name} → {selectedExhibits[1].name} 외 {selectedExhibits.Length - 2}개";
+
+        return new NavRoute
+        {
+            routeId           = "route_user_custom",
+            routeName         = routeName,
+            destination       = selectedExhibits[selectedExhibits.Length - 1].name,
+            description       = $"선택한 전시품 {selectedExhibits.Length}개 경유",
+            estimatedDistance = "경로에 따라 다름",
+            estimatedTime     = "경로에 따라 다름",
+            waypoints         = waypoints
+        };
+    }
+}
+
 // ── 목업 경로 데이터 저장소 ───────────────────────────────────────
 // 실제 서비스 시 서버 API 응답으로 교체 예정
 public static class MockRoutes

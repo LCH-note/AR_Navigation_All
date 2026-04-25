@@ -2,11 +2,12 @@
     파일명: UIManager.cs
     역할: 앱 내 모든 화면(Screen) 전환을 책임지는 중앙 UI 관리자
     관리 화면:
-      StartScreen      → 앱 시작 화면
-      MainScreen       → 메인 메뉴 (지도 보기 / 경로 선택)
-      MapScreen        → 전체 지도 화면
-      RouteSelectScreen→ 경로(목적지) 선택 화면
-      ARMapScreen      → AR 내비게이션 실행 화면 (신규)
+      StartScreen           → 앱 시작 화면
+      MainScreen            → 메인 메뉴 (지도 보기 / 경로 선택)
+      MapScreen             → 전체 지도 화면
+      RouteSelectScreen     → 추천 경로 선택 화면
+      RouteSelectUserScreen → 전시품 직접 선택 화면 (다중 선택 → 경유 경로 생성)
+      ARMapScreen           → AR 내비게이션 실행 화면
     화면 전환 방식:
       hidden CSS 클래스 추가/제거로 표시/숨김 제어
     ARMapScreen 특이사항:
@@ -29,8 +30,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private ARMapScreenController arMapScreenController;
 
     [Header("내비게이션 컨트롤러")]
-    [Tooltip("경로 선택 화면 UI 로직 (경로 카드 선택 관리)")]
+    [Tooltip("추천 경로 선택 화면 UI 로직")]
     [SerializeField] private RouteSelectController routeSelectController;
+
+    [Tooltip("전시품 직접 선택 화면 UI 로직")]
+    [SerializeField] private RouteSelectUserController routeSelectUserController;
 
     [Tooltip("AR 화살표 내비게이션 실행 컨트롤러")]
     [SerializeField] private ARNavigationController arNavigationController;
@@ -44,7 +48,8 @@ public class UIManager : MonoBehaviour
     private VisualElement _mainScreen;
     private VisualElement _mapScreen;
     private VisualElement _routeSelectScreen;
-    private VisualElement _arMapScreen;       // AR 내비게이션 화면 (신규)
+    private VisualElement _routeSelectUserScreen; // 전시품 직접 선택 화면
+    private VisualElement _arMapScreen;
 
     // 버튼 참조
     private Button _btnStart;
@@ -52,8 +57,12 @@ public class UIManager : MonoBehaviour
     private Button _btnSelectRoute;
     private Button _btnBackMap;
     private Button _btnBackRoute;
-    private Button _btnStartNavigation; // 경로 선택 화면의 "내비게이션 시작" 버튼
-    private Button _btnBackAR;          // AR 화면의 "← 나가기" 버튼
+    private Button _btnUserRoute;            // 추천 경로 화면 → 전시품 선택 화면
+    private Button _btnStartNavigation;      // 추천 경로 선택 후 "안내 시작"
+    private Button _btnBackUserRoute;        // 전시품 선택 화면 "Back"
+    private Button _btnStartUserNavigation;  // 전시품 선택 후 "안내 시작"
+    private Button _btnBackAR;              // AR 화면 "← 나가기"
+    private Button _btnTogglePath;           // AR 화면 경로선 토글
 
     // ════════════════════════════════════════════════════════════════
     //  Unity 생명주기
@@ -75,11 +84,12 @@ public class UIManager : MonoBehaviour
         _root = _uiDocument.rootVisualElement;
 
         // 1. 각 화면 인스턴스 참조 획득
-        _startScreen       = _root.Q<VisualElement>("StartScreenInstance");
-        _mainScreen        = _root.Q<VisualElement>("MainScreenInstance");
-        _mapScreen         = _root.Q<VisualElement>("MapScreenInstance");
-        _routeSelectScreen = _root.Q<VisualElement>("RouteSelectScreenInstance");
-        _arMapScreen       = _root.Q<VisualElement>("ARMapScreenInstance"); // 신규
+        _startScreen           = _root.Q<VisualElement>("StartScreenInstance");
+        _mainScreen            = _root.Q<VisualElement>("MainScreenInstance");
+        _mapScreen             = _root.Q<VisualElement>("MapScreenInstance");
+        _routeSelectScreen     = _root.Q<VisualElement>("RouteSelectScreenInstance");
+        _routeSelectUserScreen = _root.Q<VisualElement>("RouteSelectUserScreenInstance");
+        _arMapScreen           = _root.Q<VisualElement>("ARMapScreenInstance");
 
         // 2. 각 화면의 버튼에 이벤트 연결
         if (_startScreen != null)
@@ -96,14 +106,22 @@ public class UIManager : MonoBehaviour
 
         if (_routeSelectScreen != null)
         {
-            SetupButton(_routeSelectScreen, "btn-back-route",        ref _btnBackRoute,        OnBackToMainClicked);
-            // "내비게이션 시작" 버튼 → AR 내비게이션 화면으로 이동
-            SetupButton(_routeSelectScreen, "btn-start-navigation",  ref _btnStartNavigation,  OnStartNavigationClicked);
+            SetupButton(_routeSelectScreen, "btn-back-route",       ref _btnBackRoute,       OnBackToMainClicked);
+            SetupButton(_routeSelectScreen, "btn-user-route",        ref _btnUserRoute,       OnUserRouteClicked);
+            SetupButton(_routeSelectScreen, "btn-start-navigation",  ref _btnStartNavigation, OnStartNavigationClicked);
+        }
+
+        if (_routeSelectUserScreen != null)
+        {
+            SetupButton(_routeSelectUserScreen, "btn-back-user-route",       ref _btnBackUserRoute,       OnBackToRouteSelectClicked);
+            SetupButton(_routeSelectUserScreen, "btn-start-user-navigation", ref _btnStartUserNavigation, OnStartUserNavigationClicked);
         }
 
         if (_arMapScreen != null)
-            // AR 화면 "← 나가기" 버튼 → 메인 화면으로 복귀
-            SetupButton(_arMapScreen, "btn-back-ar", ref _btnBackAR, OnBackFromARClicked);
+        {
+            SetupButton(_arMapScreen, "btn-back-ar",     ref _btnBackAR,      OnBackFromARClicked);
+            SetupButton(_arMapScreen, "btn-toggle-path", ref _btnTogglePath,  OnTogglePathClicked);
+        }
 
         // 3. 초기 화면: 시작 화면만 표시
         ShowScreen(_startScreen);
@@ -117,8 +135,12 @@ public class UIManager : MonoBehaviour
         if (_btnSelectRoute     != null) _btnSelectRoute.clicked     -= OnSelectRouteClicked;
         if (_btnBackMap         != null) _btnBackMap.clicked         -= OnBackToMainClicked;
         if (_btnBackRoute       != null) _btnBackRoute.clicked       -= OnBackToMainClicked;
-        if (_btnStartNavigation != null) _btnStartNavigation.clicked -= OnStartNavigationClicked;
-        if (_btnBackAR          != null) _btnBackAR.clicked          -= OnBackFromARClicked;
+        if (_btnUserRoute           != null) _btnUserRoute.clicked           -= OnUserRouteClicked;
+        if (_btnStartNavigation    != null) _btnStartNavigation.clicked    -= OnStartNavigationClicked;
+        if (_btnBackUserRoute      != null) _btnBackUserRoute.clicked      -= OnBackToRouteSelectClicked;
+        if (_btnStartUserNavigation!= null) _btnStartUserNavigation.clicked-= OnStartUserNavigationClicked;
+        if (_btnBackAR             != null) _btnBackAR.clicked             -= OnBackFromARClicked;
+        if (_btnTogglePath         != null) _btnTogglePath.clicked         -= OnTogglePathClicked;
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -131,33 +153,45 @@ public class UIManager : MonoBehaviour
     // 메인 화면 "View Full Map" → 전체 지도 화면
     private void OnViewMapClicked() => ShowScreen(_mapScreen);
 
-    // 메인 화면 "Select Route" → 경로 선택 화면 (RouteSelectController 초기화 포함)
+    // 메인 화면 "Select Route" → 추천 경로 선택 화면
     private void OnSelectRouteClicked()
     {
         Debug.Log("UIManager: OnSelectRouteClicked() 호출됨");
 
-        // 경로 선택 화면이 열릴 때 UI 바인딩 및 선택 상태 초기화
-        try
-        {
-            routeSelectController?.OnScreenShown();
-        }
+        try { routeSelectController?.OnScreenShown(); }
         catch (System.Exception e)
-        {
-            Debug.LogError($"UIManager: RouteSelectController.OnScreenShown() 에서 예외 발생: {e}");
-        }
+        { Debug.LogError($"UIManager: RouteSelectController.OnScreenShown() 예외: {e}"); }
 
         if (_routeSelectScreen == null)
         {
-            Debug.LogError("UIManager: _routeSelectScreen 이 null 입니다! " +
-                           "'RouteSelectScreenInstance' 를 찾을 수 없습니다.");
+            Debug.LogError("UIManager: _routeSelectScreen 이 null 입니다.");
             return;
         }
-
         ShowScreen(_routeSelectScreen);
+    }
+
+    // 추천 경로 화면 "직접 전시품 선택하기" → 전시품 선택 화면
+    private void OnUserRouteClicked()
+    {
+        Debug.Log("UIManager: OnUserRouteClicked() 호출됨");
+
+        try { routeSelectUserController?.OnScreenShown(); }
+        catch (System.Exception e)
+        { Debug.LogError($"UIManager: RouteSelectUserController.OnScreenShown() 예외: {e}"); }
+
+        if (_routeSelectUserScreen == null)
+        {
+            Debug.LogError("UIManager: _routeSelectUserScreen 이 null 입니다.");
+            return;
+        }
+        ShowScreen(_routeSelectUserScreen);
     }
 
     // 지도/경로 선택 화면 "Back" → 메인 화면
     private void OnBackToMainClicked() => ShowScreen(_mainScreen);
+
+    // 전시품 선택 화면 "Back" → 추천 경로 선택 화면
+    private void OnBackToRouteSelectClicked() => ShowScreen(_routeSelectScreen);
 
     // 경로 선택 화면 "내비게이션 시작" → AR 내비게이션 화면
     private void OnStartNavigationClicked()
@@ -184,14 +218,60 @@ public class UIManager : MonoBehaviour
         {
             Debug.LogError($"UIManager: StartNavigation 예외 발생 (화살표 배치 실패): {e.Message}");
         }
+
+        // 토글 버튼 초기 상태 동기화
+        SyncTogglePathButton();
+    }
+
+    // 전시품 선택 화면 "선택한 전시품 안내 시작" → AR 내비게이션 화면
+    private void OnStartUserNavigationClicked()
+    {
+        NavRoute userRoute = routeSelectUserController?.GetUserRoute();
+
+        if (userRoute == null)
+        {
+            Debug.LogWarning("UIManager: 전시품이 선택되지 않았습니다. 1개 이상 선택해주세요.");
+            return;
+        }
+
+        ShowScreen(_arMapScreen);
+        Debug.Log($"UIManager: 사용자 경로로 AR 화면 전환 → {userRoute.routeName}");
+
+        try { arNavigationController?.StartNavigation(userRoute); }
+        catch (System.Exception e)
+        { Debug.LogError($"UIManager: StartNavigation(userRoute) 예외: {e.Message}"); }
+
+        // 토글 버튼 초기 상태 동기화
+        SyncTogglePathButton();
     }
 
     // AR 화면 "← 나가기" → 메인 화면 (내비게이션 종료 포함)
     private void OnBackFromARClicked()
     {
-        // 진행 중인 내비게이션 종료 및 화살표 오브젝트 삭제
+        // 진행 중인 내비게이션 종료 및 화살표·유도선 오브젝트 삭제
         arNavigationController?.StopNavigation();
         ShowScreen(_mainScreen);
+    }
+
+    // AR 화면 "경로선 보기/숨기기" 토글 버튼
+    private void OnTogglePathClicked()
+    {
+        if (arNavigationController == null) return;
+        arNavigationController.TogglePathLine();
+        SyncTogglePathButton();
+    }
+
+    // 토글 버튼 텍스트·스타일을 현재 IsPathLineVisible 값에 맞게 동기화
+    private void SyncTogglePathButton()
+    {
+        if (_btnTogglePath == null || arNavigationController == null) return;
+
+        bool visible = arNavigationController.IsPathLineVisible;
+        _btnTogglePath.text = visible ? "경로선 숨기기" : "경로선 보기";
+        if (visible)
+            _btnTogglePath.RemoveFromClassList("ar-toggle-path-button--hidden");
+        else
+            _btnTogglePath.AddToClassList("ar-toggle-path-button--hidden");
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -217,11 +297,12 @@ public class UIManager : MonoBehaviour
             arMapScreenController?.SetActive(false);
 
         // 모든 화면 숨김
-        _startScreen?      .AddToClassList("hidden");
-        _mainScreen?       .AddToClassList("hidden");
-        _mapScreen?        .AddToClassList("hidden");
-        _routeSelectScreen?.AddToClassList("hidden");
-        _arMapScreen?      .AddToClassList("hidden");
+        _startScreen?          .AddToClassList("hidden");
+        _mainScreen?           .AddToClassList("hidden");
+        _mapScreen?            .AddToClassList("hidden");
+        _routeSelectScreen?    .AddToClassList("hidden");
+        _routeSelectUserScreen?.AddToClassList("hidden");
+        _arMapScreen?          .AddToClassList("hidden");
 
         // 선택한 화면만 표시
         screenToShow.RemoveFromClassList("hidden");

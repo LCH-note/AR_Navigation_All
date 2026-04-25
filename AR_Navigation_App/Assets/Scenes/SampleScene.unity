@@ -245,6 +245,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &492999893
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 492999895}
+  - component: {fileID: 492999894}
+  m_Layer: 0
+  m_Name: RouteSelectUserController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &492999894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492999893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de71e15e37179041a0e6c600b2d3b8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  uiDocument: {fileID: 0}
+--- !u!4 &492999895
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492999893}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.3632815, y: 1.3480077, z: 0.35018265}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &702413256
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,6 +445,7 @@ MonoBehaviour:
   uiDocument: {fileID: 781205673}
   arMapScreenController: {fileID: 347225079}
   routeSelectController: {fileID: 1723404428}
+  routeSelectUserController: {fileID: 492999894}
   arNavigationController: {fileID: 1292171115}
 --- !u!1 &1075000274
 GameObject:
@@ -552,9 +598,12 @@ MonoBehaviour:
   arrowPrefab: {fileID: 919132149155446097, guid: b4a6fa4bf17081f4baef2131897af01a, type: 3}
   waypointReachDistance: 2
   floatForwardDistance: 1.5
-  floatHeightOffset: -0.25
+  floatHeightOffset: -0.5
   rotationSpeed: 6
   arrowScale: 0.6
+  pathLineWidth: 0.06
+  pathLineHeightOffset: 0.05
+  pathLineVisibleOnStart: 1
   useImmersalPositioning: 0
   immersalXRSpace: {fileID: 0}
 --- !u!4 &1292171116
@@ -717,3 +766,4 @@ SceneRoots:
   - {fileID: 347225080}
   - {fileID: 1723404429}
   - {fileID: 1292171116}
+  - {fileID: 492999895}

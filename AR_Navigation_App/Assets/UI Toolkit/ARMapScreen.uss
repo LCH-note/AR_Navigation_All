@@ -187,10 +187,37 @@
 }
 
 /* ════════════════════════════════════════════════
-   하단 HUD 내부 요소
+   하단 HUD
 ════════════════════════════════════════════════ */
 
-/* 내비게이션 안내 문구 */
+/* 유도선 토글 버튼: 하단 HUD 중앙에 배치 */
+.ar-toggle-path-button {
+    flex-grow: 1;
+    height: 66px;
+    background-color: rgba(41, 69, 159, 0.75);
+    color: rgb(255, 255, 255);
+    font-size: 24px;
+    border-radius: 33px;
+    border-width: 2px;
+    border-color: rgba(100, 140, 230, 0.50);
+    -unity-font-style: bold;
+    margin-left: 36px;
+    margin-right: 36px;
+}
+
+.ar-toggle-path-button:active {
+    background-color: rgba(30, 50, 120, 0.90);
+    scale: 0.97;
+}
+
+/* 유도선이 숨겨진 상태: 버튼을 흐리게 표시 */
+.ar-toggle-path-button--hidden {
+    background-color: rgba(24, 34, 60, 0.75);
+    color: rgba(255, 255, 255, 0.50);
+    border-color: rgba(41, 69, 159, 0.30);
+}
+
+/* 내비게이션 안내 문구 (향후 사용) */
 .nav-instruction {
     font-size: 33px;
     color: rgb(255, 255, 255);
@@ -198,7 +225,7 @@
     flex-grow: 1;
 }
 
-/* 거리 표시 */
+/* 거리 표시 (향후 사용) */
 .nav-distance {
     font-size: 27px;
     color: rgb(100, 140, 230);

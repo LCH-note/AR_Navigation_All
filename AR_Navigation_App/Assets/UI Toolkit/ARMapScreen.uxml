@@ -90,8 +90,18 @@
         <!-- ── 중간 콘텐츠 영역 끝 ─────────────────────────────── -->
 
 
-        <!-- 하단 HUD 제거: AR 내비게이션은 3D 화살표만으로 방향을 안내하며
-             별도 텍스트 지시문은 표시하지 않습니다 -->
+        <!-- ── 하단 HUD (항상 표시) ─────────────────────────────── -->
+        <!--
+            유도선 토글 버튼: 경로 바닥 선을 보이게/숨기게 전환합니다.
+            UIManager 에서 btn-toggle-path 를 쿼리해 클릭 이벤트를 연결합니다.
+        -->
+        <ui:VisualElement name="hud-bottom" class="ar-hud ar-hud-bottom">
+            <ui:Button
+                text="경로선 숨기기"
+                name="btn-toggle-path"
+                class="ar-toggle-path-button" />
+        </ui:VisualElement>
+        <!-- ── 하단 HUD 끝 ────────────────────────────────────── -->
 
     </ui:VisualElement>
     <!-- ── ar-map-screen 끝 ──────────────────────────────────── -->

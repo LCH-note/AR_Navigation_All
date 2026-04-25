@@ -1,15 +1,18 @@
 /*
     파일명: Assets/Navigation/ARNavigationController.cs
-    역할: AR 공간에 3D 화살표를 배치해 사용자를 경로 안내하는 핵심 컨트롤러
+    역할: AR 공간에 3D 화살표 및 경로 유도선을 배치해 사용자를 경로 안내하는 핵심 컨트롤러
     주요 기능:
       1. [플로팅 화살표] 카메라 앞 고정 거리에 항상 화살표를 표시 — 항상 화면에 보임
          - 매 프레임 카메라 위치를 따라 이동 (카메라에서 floatForwardDistance 앞)
          - Y축만 회전해 다음 웨이포인트 방향을 가리킴
-      2. [웨이포인트 추적] 카메라가 웨이포인트 도달 거리 내로 들어오면 다음 지점으로 진행
-      3. [Immersal 연동] useImmersalPositioning = true 시 XRSpace 기준 좌표 사용
+      2. [경로 유도선] 현재 위치에서 남은 웨이포인트까지 LineRenderer로 바닥 선 표시
+         - 매 프레임 첫 번째 포인트를 카메라 위치로 갱신 (지나온 구간 자동 제거)
+         - TogglePathLine() 으로 사용자가 표시/숨김 전환 가능
+      3. [웨이포인트 추적] 카메라가 웨이포인트 도달 거리 내로 들어오면 다음 지점으로 진행
+      4. [Immersal 연동] useImmersalPositioning = true 시 XRSpace 기준 좌표 사용
          (false = 시작 시 카메라 위치/방향 기준 좌표 — 기기 테스트용)
     연동:
-      - UIManager 에서 StartNavigation(route), StopNavigation() 호출
+      - UIManager 에서 StartNavigation(route), StopNavigation(), TogglePathLine() 호출
 */
 
 using System.Collections.Generic;
@@ -43,6 +46,16 @@ public class ARNavigationController : MonoBehaviour
     [Tooltip("화살표 전체 스케일")]
     [SerializeField] private float arrowScale = 1.0f;
 
+    [Header("경로 유도선 설정")]
+    [Tooltip("경로 유도선 굵기 (m)")]
+    [SerializeField] private float pathLineWidth = 0.06f;
+
+    [Tooltip("경로 유도선 바닥 높이 오프셋 (m) — 지면보다 약간 위에 표시")]
+    [SerializeField] private float pathLineHeightOffset = 0.05f;
+
+    [Tooltip("내비게이션 시작 시 유도선 표시 여부")]
+    [SerializeField] private bool pathLineVisibleOnStart = true;
+
     [Header("Immersal 설정 (선택)")]
     [Tooltip("true: Immersal XRSpace 기준 좌표 사용 / false: 시작 시 카메라 기준 좌표 사용")]
     [SerializeField] private bool      useImmersalPositioning = false;
@@ -61,11 +74,23 @@ public class ARNavigationController : MonoBehaviour
     // 화면에 항상 표시되는 플로팅 방향 화살표
     private GameObject _floatingArrow;
 
+    // 경로 유도선 오브젝트
+    private GameObject  _pathLineObject;
+    private LineRenderer _pathLine;
+    private bool         _pathLineVisible;
+
     // 화살표 색상 (딥 블루 계열)
-    private static readonly Color ColorArrow = new Color(0.10f, 0.45f, 1.00f);
+    private static readonly Color ColorArrow    = new Color(0.10f, 0.45f, 1.00f);
+    // 유도선 색상: 딥 블루 → 밝은 파랑 그라디언트
+    private static readonly Color ColorLineStart = new Color(0.16f, 0.27f, 0.62f, 0.85f);
+    private static readonly Color ColorLineEnd   = new Color(0.39f, 0.55f, 0.90f, 0.85f);
 
     // 도착 판정 완료 여부 (중복 호출 방지)
     private bool _arrivedHandled = false;
+
+    // ── 공개 프로퍼티 ────────────────────────────────────────────────
+    /// <summary>현재 유도선 표시 상태를 반환합니다.</summary>
+    public bool IsPathLineVisible => _pathLineVisible;
 
     // ════════════════════════════════════════════════════════════════
     //  공개 메서드 (UIManager 에서 호출)
@@ -94,19 +119,34 @@ public class ARNavigationController : MonoBehaviour
         // 플로팅 화살표 생성 (카메라 앞에 항상 표시)
         CreateFloatingArrow();
 
+        // 경로 유도선 생성
+        CreatePathLine();
+
         Debug.Log($"ARNavigationController: 내비게이션 시작 → {route.routeName}");
     }
 
     /// <summary>
     /// AR 화면 나가기 시 UIManager 가 호출합니다.
-    /// 화살표를 삭제하고 내비게이션 상태를 초기화합니다.
+    /// 화살표와 유도선을 삭제하고 내비게이션 상태를 초기화합니다.
     /// </summary>
     public void StopNavigation()
     {
         _isNavigating = false;
         DestroyFloatingArrow();
+        DestroyPathLine();
         _currentRoute = null;
         Debug.Log("ARNavigationController: 내비게이션 종료");
+    }
+
+    /// <summary>
+    /// 경로 유도선 표시/숨김을 전환합니다. UIManager 의 토글 버튼에서 호출합니다.
+    /// </summary>
+    public void TogglePathLine()
+    {
+        _pathLineVisible = !_pathLineVisible;
+        if (_pathLine != null)
+            _pathLine.enabled = _pathLineVisible;
+        Debug.Log($"ARNavigationController: 유도선 {(_pathLineVisible ? "표시" : "숨김")}");
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -121,6 +161,9 @@ public class ARNavigationController : MonoBehaviour
         // 플로팅 화살표를 카메라 앞 위치로 이동 + 웨이포인트 방향으로 회전
         UpdateFloatingArrow();
 
+        // 경로 유도선 갱신 (현재 위치 → 남은 웨이포인트)
+        UpdatePathLine();
+
         // 웨이포인트 도달 여부 검사
         CheckWaypointReached();
     }
@@ -128,6 +171,7 @@ public class ARNavigationController : MonoBehaviour
     void OnDestroy()
     {
         DestroyFloatingArrow();
+        DestroyPathLine();
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -264,6 +308,113 @@ public class ARNavigationController : MonoBehaviour
             Destroy(_floatingArrow);
             _floatingArrow = null;
         }
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  경로 유도선 생성 / 업데이트 / 삭제
+    // ════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// 내비게이션 시작 시 호출됩니다.
+    /// LineRenderer 컴포넌트를 가진 오브젝트를 생성하고 초기 포인트를 설정합니다.
+    /// </summary>
+    private void CreatePathLine()
+    {
+        DestroyPathLine();
+
+        _pathLineObject = new GameObject("NavPathLine");
+        _pathLine       = _pathLineObject.AddComponent<LineRenderer>();
+
+        // 선 굵기: 시작과 끝 동일
+        _pathLine.startWidth = pathLineWidth;
+        _pathLine.endWidth   = pathLineWidth;
+
+        // 로컬 좌표 사용 안 함 (월드 좌표로 직접 지정)
+        _pathLine.useWorldSpace = true;
+
+        // 재질 생성 (URP Unlit, 빌드 시 셰이더 누락 방지 폴백 포함)
+        _pathLine.material = CreatePathLineMaterial();
+
+        // 시작→끝 색상 그라디언트
+        var gradient = new Gradient();
+        gradient.SetKeys(
+            new[] { new GradientColorKey(ColorLineStart, 0f),
+                    new GradientColorKey(ColorLineEnd,   1f) },
+            new[] { new GradientAlphaKey(ColorLineStart.a, 0f),
+                    new GradientAlphaKey(ColorLineEnd.a,   1f) }
+        );
+        _pathLine.colorGradient = gradient;
+
+        // 선 끝을 둥글게
+        _pathLine.numCornerVertices = 4;
+        _pathLine.numCapVertices    = 4;
+
+        // AR 평면 메시에 가려지지 않도록 ZTest = Always 적용
+        SetZTestAlways(_pathLineObject);
+
+        // 초기 포인트 세팅
+        _pathLineVisible = pathLineVisibleOnStart;
+        _pathLine.enabled = _pathLineVisible;
+        UpdatePathLine();
+    }
+
+    /// <summary>
+    /// 매 프레임 호출됩니다.
+    /// 유도선 포인트를 [현재 위치] + [남은 웨이포인트]로 갱신합니다.
+    /// 지나온 웨이포인트는 자동으로 선에서 제외됩니다.
+    /// </summary>
+    private void UpdatePathLine()
+    {
+        if (_pathLine == null || _currentRoute == null) return;
+        // 숨겨진 상태여도 포인트는 갱신 — 다시 켰을 때 즉시 올바른 위치 표시
+
+        int remaining = _currentRoute.waypoints.Length - _currentWaypointIndex;
+        if (remaining <= 0)
+        {
+            _pathLine.positionCount = 0;
+            return;
+        }
+
+        // 포인트 배열: [현재 카메라 위치(바닥)] + [남은 웨이포인트들]
+        int count = 1 + remaining;
+        _pathLine.positionCount = count;
+
+        // 포인트 0: 카메라 바닥 위치
+        Vector3 camPos = arCamera.transform.position;
+        _pathLine.SetPosition(0, new Vector3(camPos.x, pathLineHeightOffset, camPos.z));
+
+        // 포인트 1~N: 남은 웨이포인트 월드 좌표
+        for (int i = 0; i < remaining; i++)
+        {
+            Vector3 wp = LocalToWorldPoint(
+                _currentRoute.waypoints[_currentWaypointIndex + i].localPosition);
+            _pathLine.SetPosition(i + 1, new Vector3(wp.x, pathLineHeightOffset, wp.z));
+        }
+    }
+
+    private void DestroyPathLine()
+    {
+        if (_pathLineObject != null)
+        {
+            Destroy(_pathLineObject);
+            _pathLineObject = null;
+            _pathLine       = null;
+        }
+    }
+
+    /// <summary>
+    /// URP Unlit 셰이더 기반 유도선 머티리얼을 생성합니다.
+    /// </summary>
+    private Material CreatePathLineMaterial()
+    {
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+        if (shader == null) shader = Shader.Find("Unlit/Color");
+        if (shader == null) shader = Shader.Find("Standard");
+
+        var mat = new Material(shader);
+        // 색상은 colorGradient 로 제어하므로 흰색 기본값 유지
+        mat.color = Color.white;
+        return mat;
     }
 
     /// <summary>
@@ -404,6 +555,7 @@ public class ARNavigationController : MonoBehaviour
 
         _isNavigating = false;
         DestroyFloatingArrow();
+        DestroyPathLine();
         Debug.Log($"ARNavigationController: {_currentRoute.destination} 도착 완료!");
     }
 

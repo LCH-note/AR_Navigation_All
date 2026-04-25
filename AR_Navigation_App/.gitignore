@@ -15,6 +15,17 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 
+.utmp/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+*.log
+
+
 # ------------------------------------------
 # [MemoryCaptures]
 # Unity Profiler 메모리 캡처 파일
@@ -43,9 +54,12 @@
 # ------------------------------------------
 .vs/
 .vscode/
+ExportedObj/
+.consulo/
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user
@@ -57,6 +71,12 @@
 *.mdb
 *.opendb
 *.VC.db
+*.env
+
+# Unity3D generated meta files
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
 
 # ------------------------------------------
 # [OS 시스템 파일]
