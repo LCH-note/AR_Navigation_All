@@ -196,30 +196,30 @@ public class UIManager : MonoBehaviour
     // 경로 선택 화면 "내비게이션 시작" → AR 내비게이션 화면
     private void OnStartNavigationClicked()
     {
-        // 선택된 경로 데이터 가져오기
         NavRoute selectedRoute = routeSelectController?.GetSelectedRoute();
 
-        if (selectedRoute == null)
+        if (selectedRoute == null || selectedRoute.waypoints == null || selectedRoute.waypoints.Length == 0)
         {
             Debug.LogWarning("UIManager: 경로가 선택되지 않았습니다. 카드를 먼저 선택해주세요.");
             return;
         }
 
-        // 화면 전환을 먼저 실행 (StartNavigation 내부 예외와 무관하게 화면이 전환되도록)
         ShowScreen(_arMapScreen);
         Debug.Log($"UIManager: AR 화면으로 전환 → {selectedRoute.routeName}");
 
-        // 화면 전환 후 내비게이션 시작 (예외가 발생해도 화면 전환에는 영향 없음)
         try
         {
-            arNavigationController?.StartNavigation(selectedRoute);
+            // 모든 경유지를 순서대로 방문하는 전체 NavMesh 경로 한번에 계산
+            var positions = System.Array.ConvertAll(selectedRoute.waypoints, w => w.localPosition);
+            var names     = System.Array.ConvertAll(selectedRoute.waypoints,
+                w => !string.IsNullOrEmpty(w.displayName) ? w.displayName : w.instruction);
+            arNavigationController?.StartNavigationToAll(positions, names);
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"UIManager: StartNavigation 예외 발생 (화살표 배치 실패): {e.Message}");
+            Debug.LogError($"UIManager: StartNavigationToAll 예외: {e.Message}");
         }
 
-        // 토글 버튼 초기 상태 동기화
         SyncTogglePathButton();
     }
 
@@ -228,20 +228,28 @@ public class UIManager : MonoBehaviour
     {
         NavRoute userRoute = routeSelectUserController?.GetUserRoute();
 
-        if (userRoute == null)
+        if (userRoute == null || userRoute.waypoints == null || userRoute.waypoints.Length == 0)
         {
             Debug.LogWarning("UIManager: 전시품이 선택되지 않았습니다. 1개 이상 선택해주세요.");
             return;
         }
 
         ShowScreen(_arMapScreen);
-        Debug.Log($"UIManager: 사용자 경로로 AR 화면 전환 → {userRoute.routeName}");
+        Debug.Log($"UIManager: 사용자 선택 경로로 AR 화면 전환 → {userRoute.routeName}");
 
-        try { arNavigationController?.StartNavigation(userRoute); }
+        try
+        {
+            // 전시품 좌표·이름 배열 구성 → 전체 NavMesh 경로를 한번에 계산 후 단일 경로로 안내
+            var positions = System.Array.ConvertAll(userRoute.waypoints, w => w.localPosition);
+            var names     = System.Array.ConvertAll(userRoute.waypoints,
+                w => !string.IsNullOrEmpty(w.displayName) ? w.displayName : w.instruction);
+            arNavigationController?.StartNavigationToAll(positions, names);
+        }
         catch (System.Exception e)
-        { Debug.LogError($"UIManager: StartNavigation(userRoute) 예외: {e.Message}"); }
+        {
+            Debug.LogError($"UIManager: StartNavigationToAll 예외: {e.Message}");
+        }
 
-        // 토글 버튼 초기 상태 동기화
         SyncTogglePathButton();
     }
 

@@ -10,13 +10,16 @@
          - TogglePathLine() 으로 사용자가 표시/숨김 전환 가능
       3. [웨이포인트 추적] 카메라가 웨이포인트 도달 거리 내로 들어오면 다음 지점으로 진행
       4. [Immersal 연동] useImmersalPositioning = true 시 XRSpace 기준 좌표 사용
-         (false = 시작 시 카메라 위치/방향 기준 좌표 — 기기 테스트용)
+         - 웨이포인트 localPosition 은 Immersal 맵 로컬 좌표 (XRSpace 기준)
+         - 매 프레임 immersalXRSpace.TransformPoint() 로 동적 변환 (측위 갱신 반영)
+         - false = 시작 시 카메라 위치/방향 기준 좌표 — 에디터 시뮬레이션용
     연동:
       - UIManager 에서 StartNavigation(route), StopNavigation(), TogglePathLine() 호출
 */
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class ARNavigationController : MonoBehaviour
 {
@@ -38,13 +41,23 @@ public class ARNavigationController : MonoBehaviour
     [SerializeField] private float floatForwardDistance = 1.5f;
 
     [Tooltip("카메라 높이 기준 화살표 세로 오프셋 (m, 음수=아래)")]
-    [SerializeField] private float floatHeightOffset = -0.25f;
+    [SerializeField] private float floatHeightOffset = -0.75f;
 
     [Tooltip("방향 전환 시 화살표 회전 부드러움 (높을수록 빠름)")]
     [SerializeField] private float rotationSpeed = 6f;
 
     [Tooltip("화살표 전체 스케일")]
     [SerializeField] private float arrowScale = 1.0f;
+
+    [Tooltip("블렌더 모델의 팁 방향이 Unity +Z(전방)와 다를 때 보정 회전을 입력합니다.\n" +
+             "에디터에서 Play 후 화살표 방향을 확인하며 조정하세요.\n" +
+             "일반적인 보정값 예시:\n" +
+             "  팁이 +Y(위)를 향함  → X: -90\n" +
+             "  팁이 -Y(아래)를 향함 → X: +90\n" +
+             "  팁이 +X(오른쪽)를 향함 → Y: -90\n" +
+             "  팁이 -X(왼쪽)를 향함  → Y: +90\n" +
+             "  팁이 -Z(뒤)를 향함   → Y: 180")]
+    [SerializeField] private Vector3 arrowRotationOffset = new Vector3(0f, 0f, 0f);
 
     [Header("경로 유도선 설정")]
     [Tooltip("경로 유도선 굵기 (m)")]
@@ -56,11 +69,11 @@ public class ARNavigationController : MonoBehaviour
     [Tooltip("내비게이션 시작 시 유도선 표시 여부")]
     [SerializeField] private bool pathLineVisibleOnStart = true;
 
-    [Header("Immersal 설정 (선택)")]
-    [Tooltip("true: Immersal XRSpace 기준 좌표 사용 / false: 시작 시 카메라 기준 좌표 사용")]
-    [SerializeField] private bool      useImmersalPositioning = false;
+    [Header("Immersal 설정")]
+    [Tooltip("true: Immersal XRSpace 기준 맵 좌표 사용 (실기기) / false: 시작 시 카메라 기준 좌표 사용 (에디터 시뮬레이션)")]
+    [SerializeField] private bool      useImmersalPositioning = true;
 
-    [Tooltip("Immersal XRSpace GameObject (useImmersalPositioning=true 일 때 필요)")]
+    [Tooltip("씬의 AR Space > Map > (XRSpace) Transform. useImmersalPositioning=true 일 때 필수.")]
     [SerializeField] private Transform immersalXRSpace;
 
     // ── 내부 상태 ────────────────────────────────────────────────────
@@ -68,7 +81,7 @@ public class ARNavigationController : MonoBehaviour
     private int      _currentWaypointIndex;
     private bool     _isNavigating = false;
 
-    // 내비게이션 시작 시점 원점 (로컬→월드 변환용)
+    // 카메라 기준 모드 전용 변환 행렬 (Immersal 비활성 시에만 사용)
     private Matrix4x4 _localToWorld;
 
     // 화면에 항상 표시되는 플로팅 방향 화살표
@@ -87,6 +100,11 @@ public class ARNavigationController : MonoBehaviour
 
     // 도착 판정 완료 여부 (중복 호출 방지)
     private bool _arrivedHandled = false;
+
+    // 다중 목적지 순서 안내 큐
+    private Vector3[] _queuedDestinations;
+    private string[]  _queuedDestinationNames;
+    private int       _queuedDestIndex;
 
     // ── 공개 프로퍼티 ────────────────────────────────────────────────
     /// <summary>현재 유도선 표시 상태를 반환합니다.</summary>
@@ -126,12 +144,54 @@ public class ARNavigationController : MonoBehaviour
     }
 
     /// <summary>
+    /// 단일 목적지로 NavMesh 자동 경로 계산 후 내비게이션을 시작합니다.
+    /// destMapLocal: Immersal 맵 로컬 좌표 (XRSpace 기준)
+    /// </summary>
+    public void StartNavigationTo(Vector3 destMapLocal, string destName = "목적지")
+    {
+        StartNavigationTo(new[] { destMapLocal }, new[] { destName });
+    }
+
+    /// <summary>
+    /// 다중 목적지를 순서대로 안내합니다.
+    /// 각 목적지 도달 후 자동으로 다음 목적지의 NavMesh 경로를 계산합니다.
+    /// </summary>
+    public void StartNavigationTo(Vector3[] destinations, string[] names)
+    {
+        if (destinations == null || destinations.Length == 0) return;
+
+        _queuedDestinations     = destinations;
+        _queuedDestinationNames = names ?? new string[destinations.Length];
+        _queuedDestIndex        = 0;
+
+        NavigateToQueued();
+    }
+
+    // 큐의 현재 인덱스 목적지로 NavMesh 경로를 계산하고 내비게이션을 시작
+    private void NavigateToQueued()
+    {
+        if (_queuedDestinations == null || _queuedDestIndex >= _queuedDestinations.Length)
+        {
+            Debug.Log("ARNavigationController: 모든 목적지 안내 완료");
+            return;
+        }
+
+        string  name = (_queuedDestIndex < _queuedDestinationNames.Length)
+                       ? _queuedDestinationNames[_queuedDestIndex] : "목적지";
+        NavRoute route = ComputeNavMeshRoute(_queuedDestinations[_queuedDestIndex], name);
+
+        if (route != null)
+            StartNavigation(route);
+    }
+
+    /// <summary>
     /// AR 화면 나가기 시 UIManager 가 호출합니다.
     /// 화살표와 유도선을 삭제하고 내비게이션 상태를 초기화합니다.
     /// </summary>
     public void StopNavigation()
     {
-        _isNavigating = false;
+        _isNavigating       = false;
+        _queuedDestinations = null; // 다중 목적지 큐 초기화
         DestroyFloatingArrow();
         DestroyPathLine();
         _currentRoute = null;
@@ -179,43 +239,39 @@ public class ARNavigationController : MonoBehaviour
     // ════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// 내비게이션 시작 시점의 카메라(또는 ImmersalXRSpace) 위치/방향을 기준으로
-    /// 로컬→월드 변환 행렬을 계산합니다.
+    /// Immersal 비활성 시에만 호출 — 시작 시점 카메라 기준 로컬→월드 행렬을 계산합니다.
+    /// Immersal 활성 시에는 매 프레임 immersalXRSpace.TransformPoint() 를 직접 사용합니다.
     /// </summary>
     private void ComputeNavigationOrigin()
     {
-        Vector3    origin;
-        Quaternion rotation;
-
-        if (useImmersalPositioning && immersalXRSpace != null)
+        // Immersal 모드는 XRSpace.TransformPoint() 로 동적 변환하므로 여기서 아무것도 하지 않음
+        if (useImmersalPositioning)
         {
-            origin   = immersalXRSpace.position;
-            rotation = immersalXRSpace.rotation;
-            Debug.Log("ARNavigationController: Immersal XRSpace 기준 좌표 사용");
-        }
-        else
-        {
-            if (arCamera == null)
-            {
-                Debug.LogWarning("ARNavigationController: arCamera 가 연결되지 않았습니다. " +
-                                 "Inspector 에서 XR Origin > Main Camera 를 연결해주세요. " +
-                                 "세계 원점(0,0,0) 기준으로 대체합니다.");
-                _localToWorld = Matrix4x4.identity;
-                return;
-            }
-
-            // 카메라 정면을 수평면에 투영해 진행 방향 결정
-            Vector3 camPos     = arCamera.transform.position;
-            Vector3 camForward = arCamera.transform.forward;
-            Vector3 forwardFlat = Vector3.ProjectOnPlane(camForward, Vector3.up).normalized;
-
-            // Y를 0으로 고정해 지면 기준 원점
-            origin   = new Vector3(camPos.x, 0f, camPos.z);
-            rotation = Quaternion.LookRotation(forwardFlat, Vector3.up);
-            Debug.Log("ARNavigationController: 카메라 기준 좌표 사용 (시뮬레이션 모드)");
+            if (immersalXRSpace == null)
+                Debug.LogError("ARNavigationController: useImmersalPositioning=true 이지만 " +
+                               "immersalXRSpace 가 연결되지 않았습니다. Inspector 를 확인하세요.");
+            else
+                Debug.Log("ARNavigationController: Immersal XRSpace 기준 좌표 사용 (동적 변환)");
+            return;
         }
 
+        // ── 에디터 시뮬레이션 모드 ──
+        if (arCamera == null)
+        {
+            Debug.LogWarning("ARNavigationController: arCamera 가 연결되지 않았습니다. " +
+                             "세계 원점(0,0,0) 기준으로 대체합니다.");
+            _localToWorld = Matrix4x4.identity;
+            return;
+        }
+
+        Vector3 camPos      = arCamera.transform.position;
+        Vector3 camForward  = arCamera.transform.forward;
+        Vector3 forwardFlat = Vector3.ProjectOnPlane(camForward, Vector3.up).normalized;
+
+        Vector3    origin   = new Vector3(camPos.x, 0f, camPos.z);
+        Quaternion rotation = Quaternion.LookRotation(forwardFlat, Vector3.up);
         _localToWorld = Matrix4x4.TRS(origin, rotation, Vector3.one);
+        Debug.Log("ARNavigationController: 카메라 기준 좌표 사용 (에디터 시뮬레이션)");
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -237,7 +293,8 @@ public class ARNavigationController : MonoBehaviour
         if (arrowPrefab != null)
         {
             // Prefab Instantiate — 머티리얼/셰이더가 에셋에 포함되어 빌드 시 제외되지 않음
-            _floatingArrow = Instantiate(arrowPrefab, initPos, Quaternion.identity);
+            // 초기 회전에도 모델 방향 보정 오프셋 적용
+            _floatingArrow = Instantiate(arrowPrefab, initPos, Quaternion.Euler(arrowRotationOffset));
             _floatingArrow.name = "NavFloatingArrow";
             _floatingArrow.transform.localScale = Vector3.one * arrowScale;
 
@@ -286,12 +343,17 @@ public class ARNavigationController : MonoBehaviour
             Vector3 wpWorld = LocalToWorldPoint(
                 _currentRoute.waypoints[_currentWaypointIndex].localPosition);
 
-            Vector3 dirToWp = wpWorld - floatPos;
+            // floatPos(카메라 전방 1.5m)가 아닌 카메라 위치 기준으로 방향 계산
+            // → 경로 유도선(camPos 기준)과 동일한 기준점 사용해 방향 일치
+            Vector3 dirToWp = wpWorld - camPos;
             dirToWp.y = 0f; // 수평 방향만
 
             if (dirToWp.sqrMagnitude > 0.01f)
             {
-                Quaternion targetRot = Quaternion.LookRotation(dirToWp.normalized, Vector3.up);
+                // LookRotation: 오브젝트의 로컬 +Z축이 웨이포인트 방향을 향하도록 회전
+                // arrowRotationOffset: 블렌더 모델의 팁이 +Z가 아닌 경우 보정 (Inspector 조정)
+                Quaternion targetRot = Quaternion.LookRotation(dirToWp.normalized, Vector3.up)
+                                       * Quaternion.Euler(arrowRotationOffset);
                 // 부드러운 회전 보간
                 _floatingArrow.transform.rotation = Quaternion.Slerp(
                     _floatingArrow.transform.rotation,
@@ -520,14 +582,13 @@ public class ARNavigationController : MonoBehaviour
     {
         if (_currentWaypointIndex >= _currentRoute.waypoints.Length) return;
 
-        // 카메라 수평 위치 (Y 무시)
-        Vector3 userPos  = arCamera.transform.position;
-        Vector2 userFlat = new Vector2(userPos.x, userPos.z);
+        // 웨이포인트 맵 로컬 좌표
+        Vector3 wpLocal = _currentRoute.waypoints[_currentWaypointIndex].localPosition;
 
-        // 현재 목표 웨이포인트 월드 위치
-        Vector3 wpWorld = LocalToWorldPoint(
-            _currentRoute.waypoints[_currentWaypointIndex].localPosition);
-        Vector2 wpFlat = new Vector2(wpWorld.x, wpWorld.z);
+        // 카메라를 맵 로컬 좌표로 역변환해 동일 공간에서 비교 (Y 무시, 수평 거리만)
+        Vector3 camLocal  = WorldToLocalPoint(arCamera.transform.position);
+        Vector2 userFlat  = new Vector2(camLocal.x,  camLocal.z);
+        Vector2 wpFlat    = new Vector2(wpLocal.x,   wpLocal.z);
 
         float dist = Vector2.Distance(userFlat, wpFlat);
 
@@ -557,16 +618,201 @@ public class ARNavigationController : MonoBehaviour
         DestroyFloatingArrow();
         DestroyPathLine();
         Debug.Log($"ARNavigationController: {_currentRoute.destination} 도착 완료!");
+
+        // 다중 목적지 큐가 남아있으면 다음 목적지로 자동 전환
+        if (_queuedDestinations != null && _queuedDestIndex + 1 < _queuedDestinations.Length)
+        {
+            _queuedDestIndex++;
+            Debug.Log($"ARNavigationController: 다음 목적지로 이동 " +
+                      $"[{_queuedDestIndex + 1}/{_queuedDestinations.Length}]");
+            NavigateToQueued();
+        }
     }
 
     // ════════════════════════════════════════════════════════════════
     //  보조 메서드
     // ════════════════════════════════════════════════════════════════
 
-    // 로컬 좌표를 월드 좌표로 변환
-    private Vector3 LocalToWorldPoint(Vector3 localPos)
+    // ════════════════════════════════════════════════════════════════
+    //  NavMesh 경로 계산
+    // ════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// 현재 카메라 위치 → destMapLocal 까지의 NavRoute를 자동 생성합니다.
+    /// </summary>
+    private NavRoute ComputeNavMeshRoute(Vector3 destMapLocal, string destName)
     {
-        return _localToWorld.MultiplyPoint3x4(localPos);
+        if (arCamera == null)
+        {
+            Debug.LogError("ARNavigationController: arCamera 가 연결되지 않았습니다.");
+            return null;
+        }
+        Vector3 camLocal = WorldToLocalPoint(arCamera.transform.position);
+        return ComputeNavMeshRoute(new Vector3(camLocal.x, 0f, camLocal.z), destMapLocal, destName);
+    }
+
+    /// <summary>
+    /// 명시적 시작점 startMapLocal → destMapLocal 까지의 NavRoute를 자동 생성합니다.
+    /// 전체 경로 계산(StartNavigationToAll)에서 구간별로 호출됩니다.
+    /// 좌표는 모두 맵 로컬 공간(= NavMesh 베이킹 월드 공간)에서 처리합니다.
+    /// </summary>
+    private NavRoute ComputeNavMeshRoute(Vector3 startMapLocal, Vector3 destMapLocal, string destName)
+    {
+        Vector3 endMapLocal = new Vector3(destMapLocal.x, 0f, destMapLocal.z);
+
+        // 시작/끝 점을 NavMesh 위로 스냅 (범위 2m 내 탐색)
+        if (!NavMesh.SamplePosition(startMapLocal, out NavMeshHit startHit, 2f, NavMesh.AllAreas))
+        {
+            Debug.LogError($"ARNavigationController: 시작 위치({startMapLocal})를 NavMesh에서 찾을 수 없습니다. " +
+                           "NavMesh가 올바르게 베이킹되었는지 확인하세요.");
+            return null;
+        }
+        if (!NavMesh.SamplePosition(endMapLocal, out NavMeshHit endHit, 2f, NavMesh.AllAreas))
+        {
+            Debug.LogError($"ARNavigationController: 목적지({endMapLocal})를 NavMesh에서 찾을 수 없습니다. " +
+                           "목적지가 NavMesh 범위 안에 있는지 확인하세요.");
+            return null;
+        }
+
+        var navPath = new NavMeshPath();
+        bool found = NavMesh.CalculatePath(startHit.position, endHit.position, NavMesh.AllAreas, navPath);
+
+        if (!found || navPath.status == NavMeshPathStatus.PathInvalid)
+        {
+            Debug.LogError("ARNavigationController: NavMesh 경로 계산 실패. " +
+                           "시작점과 목적지가 같은 NavMesh 영역에 있는지 확인하세요.");
+            return null;
+        }
+
+        // corners[0]=시작, corners[last]=목적지 (맵 로컬 좌표 = NavMesh 베이킹 공간)
+        Vector3[] corners = navPath.corners;
+        var waypoints = new NavWaypoint[corners.Length];
+        for (int i = 0; i < corners.Length; i++)
+        {
+            waypoints[i] = new NavWaypoint
+            {
+                localPosition = corners[i],
+                displayName   = destName,
+                instruction   = (i == corners.Length - 1) ? $"{destName} 도착!" : ""
+            };
+        }
+
+        int distM = Mathf.RoundToInt(CalcPathLength(corners));
+        return new NavRoute
+        {
+            routeId           = $"auto_{System.DateTime.Now.Ticks}",
+            routeName         = $"{destName} 자동 경로",
+            destination       = destName,
+            description       = "NavMesh 자동 계산 경로",
+            estimatedDistance = $"약 {distM}m",
+            estimatedTime     = $"약 {Mathf.Max(1, Mathf.RoundToInt(distM / 80f))}분",
+            waypoints         = waypoints
+        };
+    }
+
+    /// <summary>
+    /// 선택한 모든 목적지의 NavMesh 경로를 한번에 계산해 단일 경로로 내비게이션을 시작합니다.
+    /// 경로 유도선이 현재 위치→목적지1→목적지2→... 전 구간을 처음부터 표시합니다.
+    /// UIManager.OnStartUserNavigationClicked() 에서 호출됩니다.
+    /// </summary>
+    public void StartNavigationToAll(Vector3[] destinations, string[] destNames)
+    {
+        if (destinations == null || destinations.Length == 0) return;
+        if (arCamera == null)
+        {
+            Debug.LogError("ARNavigationController: arCamera 가 연결되지 않았습니다.");
+            return;
+        }
+
+        // WorldToLocalPoint 사용 전 좌표계 초기화 (비-Immersal 모드의 _localToWorld 계산)
+        ComputeNavigationOrigin();
+
+        var allWaypoints = new List<NavWaypoint>();
+        Vector3 camLocal = WorldToLocalPoint(arCamera.transform.position);
+        Vector3 segStart = new Vector3(camLocal.x, 0f, camLocal.z);
+
+        for (int i = 0; i < destinations.Length; i++)
+        {
+            string name = (destNames != null && i < destNames.Length)
+                          ? destNames[i] : $"전시품 {i + 1}";
+            NavRoute segment = ComputeNavMeshRoute(segStart, destinations[i], name);
+
+            if (segment?.waypoints == null || segment.waypoints.Length == 0)
+            {
+                Debug.LogWarning($"ARNavigationController: [{name}] 구간 경로 계산 실패, 건너뜁니다.");
+                segStart = new Vector3(destinations[i].x, 0f, destinations[i].z);
+                continue;
+            }
+
+            // 두 번째 구간부터 시작점이 이전 구간 끝점과 동일 → 중복 제거
+            int skip = (allWaypoints.Count > 0) ? 1 : 0;
+            for (int j = skip; j < segment.waypoints.Length; j++)
+                allWaypoints.Add(segment.waypoints[j]);
+
+            segStart = new Vector3(destinations[i].x, 0f, destinations[i].z);
+        }
+
+        if (allWaypoints.Count == 0)
+        {
+            Debug.LogError("ARNavigationController: 모든 구간 경로 계산 실패. NavMesh 범위를 확인하세요.");
+            return;
+        }
+
+        string finalDest = (destNames != null && destNames.Length > 0)
+                           ? destNames[destNames.Length - 1] : "최종 목적지";
+        float totalDist  = CalcPathLength(
+            System.Array.ConvertAll(allWaypoints.ToArray(), w => w.localPosition));
+
+        var fullRoute = new NavRoute
+        {
+            routeId           = "route_all_selected",
+            routeName         = $"전시품 {destinations.Length}개 전체 경로",
+            destination       = finalDest,
+            description       = $"선택한 전시품 {destinations.Length}개 경유",
+            estimatedDistance = $"약 {Mathf.RoundToInt(totalDist)}m",
+            estimatedTime     = $"약 {Mathf.Max(1, Mathf.RoundToInt(totalDist / 80f))}분",
+            waypoints         = allWaypoints.ToArray()
+        };
+
+        _queuedDestinations = null; // 단계별 큐 사용 안 함 (전체 경로를 단일 NavRoute로 처리)
+        StartNavigation(fullRoute);
+
+        Debug.Log($"ARNavigationController: 전체 경로 내비게이션 시작 → " +
+                  $"{destinations.Length}개 목적지, 총 {allWaypoints.Count}개 웨이포인트, " +
+                  $"약 {Mathf.RoundToInt(totalDist)}m");
+    }
+
+    // 경로 총 길이(m) 계산
+    private float CalcPathLength(Vector3[] corners)
+    {
+        float len = 0f;
+        for (int i = 1; i < corners.Length; i++)
+            len += Vector3.Distance(corners[i - 1], corners[i]);
+        return len;
+    }
+
+    /// <summary>
+    /// 웨이포인트 맵 로컬 좌표를 월드 좌표로 변환합니다.
+    /// Immersal 모드: 매 프레임 immersalXRSpace.TransformPoint() 사용 (측위 갱신 반영)
+    /// 에디터 모드: 시작 시점에 고정된 _localToWorld 행렬 사용
+    /// </summary>
+    private Vector3 LocalToWorldPoint(Vector3 mapLocalPos)
+    {
+        if (useImmersalPositioning && immersalXRSpace != null)
+            return immersalXRSpace.TransformPoint(mapLocalPos);
+
+        return _localToWorld.MultiplyPoint3x4(mapLocalPos);
+    }
+
+    /// <summary>
+    /// 월드 좌표를 맵 로컬 좌표로 역변환합니다 (웨이포인트 도달 거리 계산에 사용).
+    /// </summary>
+    private Vector3 WorldToLocalPoint(Vector3 worldPos)
+    {
+        if (useImmersalPositioning && immersalXRSpace != null)
+            return immersalXRSpace.InverseTransformPoint(worldPos);
+
+        return _localToWorld.inverse.MultiplyPoint3x4(worldPos);
     }
 
     /// <summary>

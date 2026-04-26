@@ -401,9 +401,15 @@
     -unity-font-style: italic;
 }
 
-/* 초기화 버튼 */
+/* 상태바 우측 버튼 그룹 (전체 선택 + 초기화) */
+.exhibit-action-buttons {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* 초기화·전체선택 공통 버튼 */
 .exhibit-reset-button {
-    width: 100px;
     height: 52px;
     background-color: rgba(255, 255, 255, 0.06);
     color: rgba(255, 255, 255, 0.55);
@@ -412,11 +418,24 @@
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.18);
     margin-left: 12px;
+    padding-left: 18px;
+    padding-right: 18px;
     flex-shrink: 0;
 }
 
 .exhibit-reset-button:active {
     background-color: rgba(255, 255, 255, 0.14);
+}
+
+/* 전체 선택 버튼: 강조색 적용 */
+.exhibit-select-all-button {
+    color: rgb(100, 140, 230);
+    border-color: rgba(41, 69, 159, 0.55);
+    background-color: rgba(41, 69, 159, 0.10);
+}
+
+.exhibit-select-all-button:active {
+    background-color: rgba(41, 69, 159, 0.22);
 }
 
 /* 전시품 카드 기본 스타일 (route-card 와 유사하되 독립적) */

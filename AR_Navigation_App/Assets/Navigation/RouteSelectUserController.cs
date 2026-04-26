@@ -29,6 +29,7 @@ public class RouteSelectUserController : MonoBehaviour
     private ScrollView           _scrollView;
     private Button               _btnStart;
     private Button               _btnReset;
+    private Button               _btnSelectAll;
     private Label                _labelCount;
 
     // ════════════════════════════════════════════════════════════════
@@ -88,13 +89,14 @@ public class RouteSelectUserController : MonoBehaviour
             return false;
         }
 
-        _scrollView  = screen.Q<ScrollView>("exhibit-scroll");
-        _btnStart    = screen.Q<Button>("btn-start-user-navigation");
-        _btnReset    = screen.Q<Button>("btn-reset-exhibit");
-        _labelCount  = screen.Q<Label>("label-selected-count");
+        _scrollView   = screen.Q<ScrollView>("exhibit-scroll");
+        _btnStart     = screen.Q<Button>("btn-start-user-navigation");
+        _btnReset     = screen.Q<Button>("btn-reset-exhibit");
+        _btnSelectAll = screen.Q<Button>("btn-select-all");
+        _labelCount   = screen.Q<Label>("label-selected-count");
 
-        if (_btnReset != null)
-            _btnReset.clicked += OnResetClicked;
+        if (_btnReset     != null) _btnReset.clicked     += OnResetClicked;
+        if (_btnSelectAll != null) _btnSelectAll.clicked += OnSelectAllClicked;
 
         return _scrollView != null;
     }
@@ -223,6 +225,26 @@ public class RouteSelectUserController : MonoBehaviour
         RefreshStatusBar();
         ApplyStartButtonState(false);
         Debug.Log("RouteSelectUserController: 전시품 선택 초기화");
+    }
+
+    private void OnSelectAllClicked()
+    {
+        if (_exhibits == null || _cards == null) return;
+
+        // 아직 선택되지 않은 전시품을 인덱스 순서대로 추가
+        for (int i = 0; i < _exhibits.Length; i++)
+        {
+            if (!_selectedOrder.Contains(i))
+            {
+                _selectedOrder.Add(i);
+                _cards[i]?.AddToClassList("exhibit-card--selected");
+            }
+        }
+
+        RefreshAllBadges();
+        RefreshStatusBar();
+        ApplyStartButtonState(_selectedOrder.Count > 0);
+        Debug.Log($"RouteSelectUserController: 전체 선택 → {_selectedOrder.Count}개");
     }
 
     // ════════════════════════════════════════════════════════════════

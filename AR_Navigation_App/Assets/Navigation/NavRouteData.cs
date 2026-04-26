@@ -2,12 +2,14 @@
     파일명: Assets/Navigation/NavRouteData.cs
     역할: AR 내비게이션에 사용할 경로 데이터 클래스 및 목업 데이터 저장소
     구조:
-      NavWaypoint  → 경로 상의 안내 지점 1개 (로컬 좌표 + 안내 문구)
+      NavWaypoint  → 경로 상의 안내 지점 1개 (맵 로컬 좌표 + 안내 문구)
       NavRoute     → 출발지~목적지 전체 경로 (웨이포인트 배열 포함)
-      MockRoutes   → 테스트용 목업 경로 3개 정의
+      MockRoutes   → 테스트용 목업 경로 3개 정의 (실제 맵 좌표로 교체 필요)
     좌표계:
-      웨이포인트 localPosition 은 내비게이션 시작 시점 카메라 기준 로컬 좌표
-      Z+ = 출발 시 카메라 정면 방향, X+ = 오른쪽, Y = 높이(m)
+      웨이포인트 localPosition 은 Immersal 맵 로컬 좌표 (XRSpace 기준)
+      Unity 씬의 AR Space > Map > XRSpace Transform 을 기준으로 하는 로컬 좌표.
+      실제 좌표 값은 Unity 씬에서 sparse.ply 포인트 클라우드를 시각화한 뒤
+      XRSpace 하위에 빈 GameObject 를 배치해 Inspector 로컬 좌표 값을 읽어 입력.
 */
 
 using UnityEngine;
@@ -16,11 +18,14 @@ using UnityEngine;
 [System.Serializable]
 public class NavWaypoint
 {
-    // 내비게이션 시작 카메라 기준 로컬 좌표 (미터 단위)
+    // Immersal 맵 로컬 좌표 (XRSpace 기준, 미터 단위)
     public Vector3 localPosition;
 
-    // 이 웨이포인트 도달 시 하단 HUD 에 표시할 안내 문구
+    // 이 웨이포인트 도달 시 표시할 안내 문구
     public string instruction;
+
+    // 목적지 이름 (경로 계산·HUD 표시에 사용)
+    public string displayName;
 }
 
 // ── 경로 전체 데이터 ───────────────────────────────────────────────
@@ -44,11 +49,12 @@ public class Exhibit
     public string name;           // 전시품 이름 (UI 표시용)
     public string artist;         // 작가/제작자
     public string hall;           // 전시관 위치 (예: "A관 1층")
-    public Vector3 localPosition; // 내비게이션 시작 카메라 기준 로컬 좌표
+    public Vector3 localPosition; // Immersal 맵 로컬 좌표 (XRSpace 기준)
 }
 
 // ── 목업 전시품 데이터 저장소 ──────────────────────────────────────
 // 실제 서비스 시 서버 API 응답으로 교체 예정
+// 좌표: Immersal 맵 로컬 공간 (144383-oneroom 기준), 실기기 실측값
 public static class MockExhibits
 {
     public static Exhibit[] GetAllExhibits()
@@ -58,50 +64,26 @@ public static class MockExhibits
             new Exhibit
             {
                 exhibitId     = "ex_001",
-                name          = "인상, 해돋이",
-                artist        = "클로드 모네",
-                hall          = "A관 1층",
-                localPosition = new Vector3(0f, 0f, 8f)
+                name          = "전시품 A",
+                artist        = "작가 미상",
+                hall          = "1구역",
+                localPosition = new Vector3(1.173f, 0f, -1.596f)   // 실측값 (기준점)
             },
             new Exhibit
             {
                 exhibitId     = "ex_002",
-                name          = "별이 빛나는 밤",
-                artist        = "빈센트 반 고흐",
-                hall          = "A관 1층",
-                localPosition = new Vector3(5f, 0f, 12f)
+                name          = "전시품 B",
+                artist        = "작가 미상",
+                hall          = "2구역",
+                localPosition = new Vector3(1.71f, 0f, -0.02f)    // 실측값
             },
             new Exhibit
             {
                 exhibitId     = "ex_003",
-                name          = "게르니카",
-                artist        = "파블로 피카소",
-                hall          = "B관 1층",
-                localPosition = new Vector3(10f, 0f, 10f)
-            },
-            new Exhibit
-            {
-                exhibitId     = "ex_004",
-                name          = "물랭 드 라 갈레트",
-                artist        = "피에르 오귀스트 르누아르",
-                hall          = "B관 1층",
-                localPosition = new Vector3(14f, 0f, 6f)
-            },
-            new Exhibit
-            {
-                exhibitId     = "ex_005",
-                name          = "진주 귀걸이를 한 소녀",
-                artist        = "요하네스 페르메이르",
-                hall          = "C관 2층",
-                localPosition = new Vector3(-3f, 3f, 18f)
-            },
-            new Exhibit
-            {
-                exhibitId     = "ex_006",
-                name          = "수련",
-                artist        = "클로드 모네",
-                hall          = "C관 2층",
-                localPosition = new Vector3(2f, 3f, 22f)
+                name          = "전시품 C",
+                artist        = "작가 미상",
+                hall          = "3구역",
+                localPosition = new Vector3(-1.77f, 0f, -0.13f)      // 실측값
             },
         };
     }
@@ -121,6 +103,7 @@ public static class MockExhibits
             waypoints[i] = new NavWaypoint
             {
                 localPosition = selectedExhibits[i].localPosition,
+                displayName   = selectedExhibits[i].name,
                 instruction   = $"{selectedExhibits[i].name} 도착"
             };
         }
@@ -147,134 +130,49 @@ public static class MockExhibits
 
 // ── 목업 경로 데이터 저장소 ───────────────────────────────────────
 // 실제 서비스 시 서버 API 응답으로 교체 예정
+// 좌표: Immersal 맵 로컬 공간 (144383-oneroom 기준), 실기기 실측값
+// 여기에 등록된 경로만 RouteSelectScreen(추천 경로 화면)에 표시됨
 public static class MockRoutes
 {
     public static NavRoute[] GetAllRoutes()
     {
         return new NavRoute[]
         {
-            CreateRoute_Lobby(),
-            CreateRoute_ExhibitB(),
-            CreateRoute_Cafe2F(),
+            CreateRoute_AllStops(),
+            // 추후 백엔드 API 응답으로 교체 시 이 배열을 서버 데이터로 대체
         };
     }
 
-    // ── 경로 0: 입구 → 1층 로비 (직진) ─────────────────────────
-    private static NavRoute CreateRoute_Lobby()
+    // ── 전체 순회: A → B → C ──────────────────────────────────────
+    private static NavRoute CreateRoute_AllStops()
     {
         return new NavRoute
         {
-            routeId             = "route_lobby",
-            routeName           = "입구 → 1층 로비",
-            destination         = "1층 로비",
-            description         = "입구에서 중앙 로비로 직진",
-            estimatedDistance   = "약 20m",
-            estimatedTime       = "약 1분",
+            routeId           = "route_all_stops",
+            routeName         = "전체 순회 (A → B → C)",
+            destination       = "전시품 C",
+            description       = "모든 전시품을 순서대로 방문합니다",
+            estimatedDistance = "약 5m",
+            estimatedTime     = "약 3분",
             waypoints = new NavWaypoint[]
             {
                 new NavWaypoint
                 {
-                    localPosition = new Vector3(0f, 0f, 3f),
-                    instruction   = "직진하세요"
+                    localPosition = new Vector3(1.173f, 0f, -1.596f),   // 전시품 A (실측값)
+                    displayName   = "전시품 A",
+                    instruction   = "전시품 A 도착! 다음: 전시품 B"
                 },
                 new NavWaypoint
                 {
-                    localPosition = new Vector3(0f, 0f, 8f),
-                    instruction   = "직진하세요"
+                    localPosition = new Vector3(1.71f, 0f, -0.02f),    // 전시품 B (실측값)
+                    displayName   = "전시품 B",
+                    instruction   = "전시품 B 도착! 다음: 전시품 C"
                 },
                 new NavWaypoint
                 {
-                    localPosition = new Vector3(0f, 0f, 14f),
-                    instruction   = "조금만 더 직진하세요"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(0f, 0f, 20f),
-                    instruction   = "1층 로비 도착!"
-                },
-            }
-        };
-    }
-
-    // ── 경로 1: 로비 → B관 전시실 (우회전 포함) ─────────────────
-    private static NavRoute CreateRoute_ExhibitB()
-    {
-        return new NavRoute
-        {
-            routeId             = "route_exhibit_b",
-            routeName           = "로비 → B관 전시실",
-            destination         = "B관 전시실",
-            description         = "로비에서 우회전 후 B관 전시실로",
-            estimatedDistance   = "약 35m",
-            estimatedTime       = "약 2분",
-            waypoints = new NavWaypoint[]
-            {
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(0f,   0f, 5f),
-                    instruction   = "직진하세요"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(0f,   0f, 10f),
-                    instruction   = "우회전하세요"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(6f,   0f, 10f),
-                    instruction   = "직진하세요"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(12f,  0f, 10f),
-                    instruction   = "직진하세요"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(18f,  0f, 10f),
-                    instruction   = "B관 전시실 도착!"
-                },
-            }
-        };
-    }
-
-    // ── 경로 2: 입구 → 2층 카페 (좌회전 + 계단) ─────────────────
-    private static NavRoute CreateRoute_Cafe2F()
-    {
-        return new NavRoute
-        {
-            routeId             = "route_cafe_2f",
-            routeName           = "입구 → 2층 카페",
-            destination         = "2층 카페",
-            description         = "계단을 통해 2층 카페로 이동",
-            estimatedDistance   = "약 50m",
-            estimatedTime       = "약 3분",
-            waypoints = new NavWaypoint[]
-            {
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(0f,   0f,  5f),
-                    instruction   = "직진하세요"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(-4f,  0f,  5f),
-                    instruction   = "좌회전하세요"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(-4f,  0f,  12f),
-                    instruction   = "계단이 보입니다"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(-4f,  3f,  16f),
-                    instruction   = "계단을 올라가세요"
-                },
-                new NavWaypoint
-                {
-                    localPosition = new Vector3(-4f,  3f,  22f),
-                    instruction   = "2층 카페 도착!"
+                    localPosition = new Vector3(-1.77f, 0f, -0.13f),      // 전시품 C (실측값)
+                    displayName   = "전시품 C",
+                    instruction   = "전시품 C 도착! 전체 순회 완료"
                 },
             }
         };
