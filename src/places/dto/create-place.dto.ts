@@ -15,6 +15,21 @@ export class CreatePlaceDto {
   @IsString()
   description?: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  feature?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(191)
+  imagePath?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(191)
+  arMarkerId?: string;
+
   @IsNumber()
   x!: number;
 

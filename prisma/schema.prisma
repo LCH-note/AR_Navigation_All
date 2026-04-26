@@ -88,16 +88,18 @@ model Place {
   name        String
   description String? @db.Text
 
+  feature    String?
+  imagePath  String?
+  arMarkerId String?
+
   coordType CoordType @default(LOCAL_3D)
 
-  // LOCAL_3D
   x        Float?
   y        Float?
   z        Float?
   floor    Int?
   anchorId Int?
 
-  // GPS
   lat Float?
   lng Float?
 
@@ -111,10 +113,27 @@ model Place {
   facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
   anchor   Anchor?  @relation(fields: [anchorId], references: [id], onDelete: SetNull)
 
+  reviews Review[]
+
   @@index([category])
   @@index([facilityId])
   @@index([anchorId])
+  @@index([arMarkerId])
   @@map("places")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  placeId   Int
+  star      Int
+  content   String?  @db.Text
+  nickname  String   @default("익명")
+  createdAt DateTime @default(now())
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@index([placeId])
+  @@map("reviews")
 }
 
 enum CoordType {
