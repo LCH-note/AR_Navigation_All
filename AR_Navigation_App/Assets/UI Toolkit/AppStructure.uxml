@@ -9,6 +9,8 @@
     <ui:Template name="RouteSelectScreenUser" src="project://database/Assets/UI%20Toolkit/RouteSelectScreenUser.uxml" />
     <!-- AR 내비게이션 실행 화면: 투명 배경 + 가속도계 지도 표시 -->
     <ui:Template name="ARMapScreen"           src="project://database/Assets/UI%20Toolkit/ARMapScreen.uxml" />
+    <!-- 리뷰 작성 화면: 별점 + 의견 입력 -->
+    <ui:Template name="UserReviewScreen"      src="project://database/Assets/UI%20Toolkit/UserReviewScreen.uxml" />
 
     <!-- 공통 스타일 시트 -->
     <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss" />
@@ -52,6 +54,12 @@
         -->
         <ui:Instance template="ARMapScreen"
                      name="ARMapScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 리뷰 작성 화면: 초기엔 숨김 -->
+        <ui:Instance template="UserReviewScreen"
+                     name="UserReviewScreenInstance"
                      class="hidden"
                      style="width: 100%; height: 100%;" />
 

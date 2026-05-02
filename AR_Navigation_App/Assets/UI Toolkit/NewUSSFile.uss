@@ -90,6 +90,116 @@
     scale: 0.95;
 }
 
+/* 나이대 미선택 시 Start 버튼 비활성 스타일 */
+.start-button--disabled {
+    background-color: rgb(18, 27, 48);
+    color: rgba(41, 69, 159, 0.30);
+}
+
+.start-button--disabled:hover {
+    background-color: rgb(18, 27, 48);
+    scale: 1.0;
+}
+
+
+/* ══════════════════════════════════════════════
+   시작 화면 — 나이대 설문 (survey)
+══════════════════════════════════════════════ */
+
+/* 설문 전체 컨테이너 */
+.survey-container {
+    margin-bottom: 44px;
+    padding-top: 28px;
+    padding-bottom: 28px;
+    padding-left: 28px;
+    padding-right: 28px;
+    background-color: rgb(18, 27, 48);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-width: 1px;
+    border-color: rgba(41, 69, 159, 0.35);
+    width: 500px;
+    align-items: center;
+}
+
+/* 설문 안내 문구 */
+.survey-title {
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.85);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 22px;
+}
+
+/* 옵션 행 목록: 2열 레이아웃 */
+.survey-options {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* 개별 옵션 항목 */
+.survey-option {
+    flex-direction: row;
+    align-items: center;
+    width: 47%;
+    margin-bottom: 16px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 16px;
+    padding-right: 16px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* 선택된 옵션 항목: 강조 테두리 + 배경 */
+.survey-option--selected {
+    background-color: rgba(41, 69, 159, 0.22);
+    border-color: rgb(41, 69, 159);
+}
+
+/* 라디오 버튼 인디케이터 (원형 테두리) */
+.radio-indicator {
+    width: 30px;
+    height: 30px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.40);
+    background-color: transparent;
+    margin-right: 14px;
+    flex-shrink: 0;
+}
+
+/* 선택된 라디오: 딥 블루로 채움 */
+.radio-indicator--selected {
+    background-color: rgb(41, 69, 159);
+    border-color: rgb(41, 69, 159);
+}
+
+/* 옵션 텍스트 */
+.survey-option-label {
+    font-size: 26px;
+    color: rgba(255, 255, 255, 0.75);
+    -unity-text-align: middle-left;
+}
+
+/* 선택된 옵션 텍스트 강조 */
+.survey-option-label--selected {
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
 
 /* ══════════════════════════════════════════════
    메인 화면 (MainScreen)
@@ -544,4 +654,96 @@
 /* 체크 마크 숨김 */
 .exhibit-check-mark--hidden {
     display: none;
+}
+
+
+/* ══════════════════════════════════════════════
+   리뷰 작성 화면 (UserReviewScreen)
+══════════════════════════════════════════════ */
+
+/* 콘텐츠 전체 영역: 헤더 아래 공간, 스크롤 없이 세로 정렬 */
+.review-content {
+    flex-grow: 1;
+    align-items: stretch;
+    padding-top: 32px;
+    padding-left: 36px;
+    padding-right: 36px;
+    padding-bottom: 20px;
+}
+
+/* 섹션 구분 컨테이너: 별점 / 의견 각각 한 블록 */
+.review-section {
+    margin-bottom: 40px;
+    align-items: center;
+}
+
+/* 섹션 제목 텍스트 */
+.review-section-title {
+    font-size: 30px;
+    color: rgba(255, 255, 255, 0.85);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 28px;
+}
+
+/* 별 5개 가로 배치 컨테이너 */
+.star-rating-container {
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+/* 개별 별 라벨 (빈 별 기본) */
+.star-label {
+    font-size: 72px;
+    color: rgba(255, 255, 255, 0.25);
+    -unity-text-align: middle-center;
+    margin-left: 8px;
+    margin-right: 8px;
+    width: 80px;
+    height: 80px;
+}
+
+/* 채워진 별 (클릭 후 활성) */
+.star-label--active {
+    color: rgb(100, 140, 230);
+}
+
+/* 별점 숫자 텍스트 (1점~5점) */
+.review-rating-label {
+    font-size: 26px;
+    color: rgb(100, 140, 230);
+    -unity-text-align: middle-center;
+    height: 36px;
+}
+
+/* 의견 입력 TextField */
+.review-text-field {
+    width: 100%;
+    flex-grow: 1;
+    min-height: 280px;
+    background-color: rgb(18, 27, 48);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-width: 2px;
+    border-color: rgba(41, 69, 159, 0.45);
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 26px;
+    color: rgb(255, 255, 255);
+    -unity-text-align: upper-left;
+    white-space: normal;
+}
+
+.review-text-field:focus {
+    border-color: rgb(41, 69, 159);
+}
+
+/* placeholder 상태: 텍스트를 보조색(반투명 흰색)으로 표시 */
+.review-text-field--placeholder {
+    color: rgba(255, 255, 255, 0.38);
 }

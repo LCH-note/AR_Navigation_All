@@ -8,6 +8,7 @@
       RouteSelectScreen     → 추천 경로 선택 화면
       RouteSelectUserScreen → 전시품 직접 선택 화면 (다중 선택 → 경유 경로 생성)
       ARMapScreen           → AR 내비게이션 실행 화면
+      UserReviewScreen      → 리뷰 작성 화면 (별점 + 의견 입력)
     화면 전환 방식:
       hidden CSS 클래스 추가/제거로 표시/숨김 제어
     ARMapScreen 특이사항:
@@ -39,6 +40,9 @@ public class UIManager : MonoBehaviour
     [Tooltip("AR 화살표 내비게이션 실행 컨트롤러")]
     [SerializeField] private ARNavigationController arNavigationController;
 
+    [Tooltip("리뷰 작성 화면 UI 로직")]
+    [SerializeField] private UserReviewController userReviewController;
+
     // ── UI 내부 참조 (런타임에 UIDocument 에서 쿼리) ─────────────────
     private UIDocument    _uiDocument;
     private VisualElement _root;
@@ -50,6 +54,7 @@ public class UIManager : MonoBehaviour
     private VisualElement _routeSelectScreen;
     private VisualElement _routeSelectUserScreen; // 전시품 직접 선택 화면
     private VisualElement _arMapScreen;
+    private VisualElement _reviewScreen;          // 리뷰 작성 화면
 
     // 버튼 참조
     private Button _btnStart;
@@ -63,6 +68,16 @@ public class UIManager : MonoBehaviour
     private Button _btnStartUserNavigation;  // 전시품 선택 후 "안내 시작"
     private Button _btnBackAR;              // AR 화면 "← 나가기"
     private Button _btnTogglePath;           // AR 화면 경로선 토글
+    private Button _btnReview;               // 메인 화면 "리뷰 작성하기"
+    private Button _btnBackReview;           // 리뷰 화면 "Back"
+    private Button _btnSubmitReview;         // 리뷰 화면 "리뷰 남기기"
+
+    // 나이대 설문 관련
+    private static readonly string[] AgeOptionNames = { "age-10", "age-20", "age-30", "age-40", "age-50", "age-60" };
+    private VisualElement[] _surveyOptions;      // 6개 옵션 컨테이너
+    private VisualElement[] _radioIndicators;    // 6개 라디오 인디케이터 원형
+    private Label[]         _surveyLabels;       // 6개 옵션 텍스트
+    private int _selectedAgeIndex = -1;          // 선택된 나이대 인덱스 (-1 = 미선택)
 
     // ════════════════════════════════════════════════════════════════
     //  Unity 생명주기
@@ -90,15 +105,21 @@ public class UIManager : MonoBehaviour
         _routeSelectScreen     = _root.Q<VisualElement>("RouteSelectScreenInstance");
         _routeSelectUserScreen = _root.Q<VisualElement>("RouteSelectUserScreenInstance");
         _arMapScreen           = _root.Q<VisualElement>("ARMapScreenInstance");
+        _reviewScreen          = _root.Q<VisualElement>("UserReviewScreenInstance");
 
         // 2. 각 화면의 버튼에 이벤트 연결
         if (_startScreen != null)
+        {
             SetupButton(_startScreen, "btn-start", ref _btnStart, OnStartClicked);
+            SetupSurvey();
+            UpdateStartButton();
+        }
 
         if (_mainScreen != null)
         {
             SetupButton(_mainScreen, "btn-view-map",     ref _btnViewMap,     OnViewMapClicked);
             SetupButton(_mainScreen, "btn-select-route", ref _btnSelectRoute, OnSelectRouteClicked);
+            SetupButton(_mainScreen, "btn-review",       ref _btnReview,      OnReviewClicked);
         }
 
         if (_mapScreen != null)
@@ -123,6 +144,12 @@ public class UIManager : MonoBehaviour
             SetupButton(_arMapScreen, "btn-toggle-path", ref _btnTogglePath,  OnTogglePathClicked);
         }
 
+        if (_reviewScreen != null)
+        {
+            SetupButton(_reviewScreen, "btn-back-review",   ref _btnBackReview,   OnBackFromReviewClicked);
+            SetupButton(_reviewScreen, "btn-submit-review", ref _btnSubmitReview, OnSubmitReviewClicked);
+        }
+
         // 3. 초기 화면: 시작 화면만 표시
         ShowScreen(_startScreen);
     }
@@ -141,14 +168,90 @@ public class UIManager : MonoBehaviour
         if (_btnStartUserNavigation!= null) _btnStartUserNavigation.clicked-= OnStartUserNavigationClicked;
         if (_btnBackAR             != null) _btnBackAR.clicked             -= OnBackFromARClicked;
         if (_btnTogglePath         != null) _btnTogglePath.clicked         -= OnTogglePathClicked;
+        if (_btnReview             != null) _btnReview.clicked             -= OnReviewClicked;
+        if (_btnBackReview         != null) _btnBackReview.clicked         -= OnBackFromReviewClicked;
+        if (_btnSubmitReview       != null) _btnSubmitReview.clicked       -= OnSubmitReviewClicked;
     }
 
     // ════════════════════════════════════════════════════════════════
     //  버튼 이벤트 핸들러
     // ════════════════════════════════════════════════════════════════
 
-    // 시작 화면 "Start" → 메인 화면
-    private void OnStartClicked() => ShowScreen(_mainScreen);
+    // 시작 화면 "Start" → 메인 화면 (나이대 미선택 시 차단)
+    private void OnStartClicked()
+    {
+        if (_selectedAgeIndex < 0)
+        {
+            Debug.LogWarning("UIManager: 나이대를 먼저 선택해주세요.");
+            return;
+        }
+        Debug.Log($"UIManager: 선택된 나이대 = {AgeOptionNames[_selectedAgeIndex]}");
+        ShowScreen(_mainScreen);
+    }
+
+    // ══════════════════════════════════════════════
+    //  나이대 설문 초기화 및 선택 처리
+    // ══════════════════════════════════════════════
+
+    // 설문 옵션 참조를 수집하고 클릭 이벤트를 등록합니다.
+    private void SetupSurvey()
+    {
+        _surveyOptions    = new VisualElement[AgeOptionNames.Length];
+        _radioIndicators  = new VisualElement[AgeOptionNames.Length];
+        _surveyLabels     = new Label[AgeOptionNames.Length];
+
+        for (int i = 0; i < AgeOptionNames.Length; i++)
+        {
+            var option = _startScreen?.Q<VisualElement>(AgeOptionNames[i]);
+            if (option == null) continue;
+
+            _surveyOptions[i]   = option;
+            _radioIndicators[i] = option.Q<VisualElement>(className: "radio-indicator");
+            _surveyLabels[i]    = option.Q<Label>(className: "survey-option-label");
+
+            int idx = i; // 람다 캡처용 복사
+            option.RegisterCallback<ClickEvent>(_ => OnAgeSelected(idx));
+        }
+    }
+
+    // 특정 나이대 항목 선택 처리 (라디오 버튼 단일 선택)
+    private void OnAgeSelected(int index)
+    {
+        // 이전 선택 해제
+        if (_selectedAgeIndex >= 0 && _selectedAgeIndex < _surveyOptions.Length)
+        {
+            _surveyOptions[_selectedAgeIndex]?.RemoveFromClassList("survey-option--selected");
+            _radioIndicators[_selectedAgeIndex]?.RemoveFromClassList("radio-indicator--selected");
+            _surveyLabels[_selectedAgeIndex]?.RemoveFromClassList("survey-option-label--selected");
+        }
+
+        // 같은 항목 재클릭 시 선택 해제
+        if (_selectedAgeIndex == index)
+        {
+            _selectedAgeIndex = -1;
+            UpdateStartButton();
+            return;
+        }
+
+        // 새 항목 선택 적용
+        _selectedAgeIndex = index;
+        _surveyOptions[index]?.AddToClassList("survey-option--selected");
+        _radioIndicators[index]?.AddToClassList("radio-indicator--selected");
+        _surveyLabels[index]?.AddToClassList("survey-option-label--selected");
+
+        UpdateStartButton();
+    }
+
+    // 선택 여부에 따라 Start 버튼 활성/비활성 스타일 갱신
+    private void UpdateStartButton()
+    {
+        if (_btnStart == null) return;
+        bool hasSelection = _selectedAgeIndex >= 0;
+        if (hasSelection)
+            _btnStart.RemoveFromClassList("start-button--disabled");
+        else
+            _btnStart.AddToClassList("start-button--disabled");
+    }
 
     // 메인 화면 "View Full Map" → 전체 지도 화면
     private void OnViewMapClicked() => ShowScreen(_mapScreen);
@@ -253,6 +356,23 @@ public class UIManager : MonoBehaviour
         SyncTogglePathButton();
     }
 
+    // 메인 화면 "리뷰 작성하기" → 리뷰 작성 화면
+    private void OnReviewClicked()
+    {
+        userReviewController?.OnScreenShown(_reviewScreen);
+        ShowScreen(_reviewScreen);
+    }
+
+    // 리뷰 화면 "Back" → 메인 화면
+    private void OnBackFromReviewClicked() => ShowScreen(_mainScreen);
+
+    // 리뷰 화면 "리뷰 남기기" → 제출 후 메인 화면으로 복귀
+    private void OnSubmitReviewClicked()
+    {
+        userReviewController?.OnSubmitReview();
+        ShowScreen(_mainScreen);
+    }
+
     // AR 화면 "← 나가기" → 메인 화면 (내비게이션 종료 포함)
     private void OnBackFromARClicked()
     {
@@ -311,6 +431,7 @@ public class UIManager : MonoBehaviour
         _routeSelectScreen?    .AddToClassList("hidden");
         _routeSelectUserScreen?.AddToClassList("hidden");
         _arMapScreen?          .AddToClassList("hidden");
+        _reviewScreen?         .AddToClassList("hidden");
 
         // 선택한 화면만 표시
         screenToShow.RemoveFromClassList("hidden");

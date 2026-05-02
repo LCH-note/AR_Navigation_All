@@ -1,0 +1,59 @@
+<!--
+    파일명: Assets/UI Toolkit/UserReviewScreen.uxml
+    역할: 사용자 리뷰 작성 화면 (별점 + 의견 입력 + 제출)
+    진입: MainScreen "리뷰 작성하기" 버튼
+-->
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    xsi="http://www.w3.org/2001/XMLSchema-instance"
+    engine="UnityEngine.UIElements"
+    editor="UnityEditor.UIElements"
+    noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+    editor-extension-mode="False">
+
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=dbb4c00365d49134d8a69a7f1ff0ce9e&amp;type=3#NewUSSFile" />
+
+    <ui:VisualElement name="user-review-screen" class="screen">
+
+        <!-- 상단 헤더 -->
+        <ui:VisualElement class="sub-screen-header">
+            <ui:Button text="Back" name="btn-back-review" class="back-button" />
+            <ui:Label text="리뷰 작성" class="header-title" />
+        </ui:VisualElement>
+
+        <!-- 콘텐츠 영역 -->
+        <ui:VisualElement class="review-content">
+
+            <!-- 별점 섹션 -->
+            <ui:VisualElement class="review-section">
+                <ui:Label text="관람은 어떠셨나요?" class="review-section-title" />
+                <ui:VisualElement class="star-rating-container">
+                    <ui:Label text="☆" name="star-1" class="star-label" />
+                    <ui:Label text="☆" name="star-2" class="star-label" />
+                    <ui:Label text="☆" name="star-3" class="star-label" />
+                    <ui:Label text="☆" name="star-4" class="star-label" />
+                    <ui:Label text="☆" name="star-5" class="star-label" />
+                </ui:VisualElement>
+                <ui:Label text="" name="review-rating-label" class="review-rating-label" />
+            </ui:VisualElement>
+
+            <!-- 의견 입력 섹션 -->
+            <ui:VisualElement class="review-section">
+                <ui:TextField
+                    name="review-text-field"
+                    class="review-text-field"
+                    multiline="true" />
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+
+        <!-- 하단 제출 버튼 -->
+        <ui:Button
+            text="리뷰 남기기"
+            name="btn-submit-review"
+            class="start-nav-button" />
+
+    </ui:VisualElement>
+
+</ui:UXML>
