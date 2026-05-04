@@ -127,8 +127,11 @@ public class UserReviewController : MonoBehaviour
             return;
         }
 
-        // TODO: 백엔드 API 연동 시 여기서 POST 요청 전송
         Debug.Log($"[리뷰 제출] 별점: {_currentRating}점 / 의견: \"{reviewText}\"");
+
+        // DataSyncManager를 통해 백엔드로 POST /reviews 전송
+        if (DataSyncManager.Instance != null)
+            StartCoroutine(DataSyncManager.Instance.SubmitReviewAsync(_currentRating, reviewText));
     }
 
     /// <summary>

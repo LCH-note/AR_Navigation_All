@@ -64,6 +64,10 @@ Assets/
   RouteSelectController.cs
   RouteSelectUserController.cs
   UserReviewController.cs
+ Network/
+  ApiClient.cs
+  ApiModels.cs
+  DataSyncManager.cs
  Settings/Project Configuration/SceneTemplate_RotateCube.cs
  UI Toolkit/UIManager.cs
 Temp/obj/Debug/Assembly-CSharp/.NETStandard,Version=v2.1.AssemblyAttributes.cs

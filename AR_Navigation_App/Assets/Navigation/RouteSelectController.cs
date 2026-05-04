@@ -43,8 +43,8 @@ public class RouteSelectController : MonoBehaviour
         // ① UI 요소 참조 획득
         if (!TryGetUIReferences()) return;
 
-        // ② Mock 데이터 로드 (추후 백엔드 API 응답 데이터로 교체)
-        _routes = MockRoutes.GetAllRoutes();
+        // ② 경로 데이터 로드 (DataSyncManager 로드 완료 시 서버 데이터, 미완료 시 Mock)
+        _routes = DataSyncManager.LoadedRoutes ?? MockRoutes.GetAllRoutes();
 
         // ③ 카드 동적 생성
         BuildRouteCards();

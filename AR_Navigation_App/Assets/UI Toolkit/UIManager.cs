@@ -74,6 +74,7 @@ public class UIManager : MonoBehaviour
 
     // 나이대 설문 관련
     private static readonly string[] AgeOptionNames = { "age-10", "age-20", "age-30", "age-40", "age-50", "age-60" };
+    private static readonly string[] AgeLabels      = { "10대", "20대", "30대", "40대", "50대", "60대 이상" };
     private VisualElement[] _surveyOptions;      // 6개 옵션 컨테이너
     private VisualElement[] _radioIndicators;    // 6개 라디오 인디케이터 원형
     private Label[]         _surveyLabels;       // 6개 옵션 텍스트
@@ -185,7 +186,14 @@ public class UIManager : MonoBehaviour
             Debug.LogWarning("UIManager: 나이대를 먼저 선택해주세요.");
             return;
         }
-        Debug.Log($"UIManager: 선택된 나이대 = {AgeOptionNames[_selectedAgeIndex]}");
+
+        string ageGroup = AgeLabels[_selectedAgeIndex];
+        Debug.Log($"UIManager: 선택된 나이대 = {ageGroup}");
+
+        // 방문자 카운팅 (기기당 1회, 연령대 + 방문 일시 포함)
+        if (DataSyncManager.Instance != null)
+            StartCoroutine(DataSyncManager.Instance.SubmitVisitorAsync(ageGroup));
+
         ShowScreen(_mainScreen);
     }
 

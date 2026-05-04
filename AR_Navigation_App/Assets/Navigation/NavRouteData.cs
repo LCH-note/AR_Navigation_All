@@ -49,6 +49,7 @@ public class Exhibit
     public string name;           // 전시품 이름 (UI 표시용)
     public string artist;         // 작가/제작자
     public string hall;           // 전시관 위치 (예: "A관 1층")
+    public string docentText;     // 도슨트 설명 텍스트 (백엔드 API 에서 수신)
     public Vector3 localPosition; // Immersal 맵 로컬 좌표 (XRSpace 기준)
 }
 

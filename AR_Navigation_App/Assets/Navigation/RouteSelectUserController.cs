@@ -43,8 +43,8 @@ public class RouteSelectUserController : MonoBehaviour
     {
         if (!TryGetUIReferences()) return;
 
-        // Mock 데이터 로드 (추후 백엔드 API 응답으로 교체)
-        _exhibits = MockExhibits.GetAllExhibits();
+        // 전시물 데이터 로드 (DataSyncManager 로드 완료 시 서버 데이터, 미완료 시 Mock)
+        _exhibits = DataSyncManager.LoadedExhibits ?? MockExhibits.GetAllExhibits();
 
         _selectedOrder = new List<int>();
         BuildExhibitCards();
