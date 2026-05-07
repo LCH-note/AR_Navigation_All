@@ -1,7 +1,29 @@
 import { useState, useEffect } from "react"; // [추가] 시계 구동을 위한 Hook 임포트
 import { Link } from "react-router-dom";
 
+const serverHost = "http://localhost:3000";
+const apiUrl = `${serverHost}/api/display`;
+
 function Space() {
+    // [추가] 전시물 목록 상태 및 불러오기 로직 추가
+    const [items, setItems] = useState([]);
+
+    const fetchItems = async () => {
+        try {
+            const response = await fetch(apiUrl);
+            if (response.ok) {
+                const data = await response.json();
+                setItems(data);
+            }
+        } catch (error) {
+            console.error("목록 불러오기 실패:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchItems();
+    }, []);
+
     return (
         <div className="flex h-screen w-full bg-[#101622] font-display text-white overflow-hidden antialiased">
             {/* 1. Left Navigation */}
@@ -210,14 +232,66 @@ function Space() {
                                         />
                                     </div>
                                 </div>
+                                <div className="mt-3">
+                                    <label className="block text-xs font-medium text-slate-400 mb-1">
+                                        맵데이터 파일 (Map Data File)
+                                    </label>
+                                    <input
+                                        className="w-full text-sm border-slate-700 bg-[#111318] text-slate-400 rounded-lg focus:ring-primary focus:border-primary outline-none file:mr-3 file:py-1.5 file:px-3 file:border-0 file:text-xs file:font-medium file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer"
+                                        type="file"
+                                    />
+                                </div>
                             </div>
                             <div className="h-px bg-slate-700"></div>
 
-                            {/* Connected Nodes */}
+                            {/* Connected Nodes - UI 개선 영역 */}
                             <div>
-                                <h4 className="text-xs font-bold text-slate-400 mb-3 uppercase flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-sm">hub</span> 적용된 전시품 위치
-                                </h4>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-sm">hub</span> 적용된 전시품
+                                        위치
+                                    </h4>
+                                    <span className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary rounded-full font-bold">
+                                        {items.length}개
+                                    </span>
+                                </div>
+
+                                <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
+                                    {items.length > 0 ? (
+                                        items.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className="group flex items-center justify-between bg-[#1a1f2b] border-l-4 border-l-transparent border border-slate-700/50 rounded-r-lg p-3 hover:border-l-primary hover:bg-[#1e2433] transition-all"
+                                            >
+                                                <div className="flex flex-col overflow-hidden mr-2">
+                                                    <span className="text-sm font-bold text-slate-100 truncate group-hover:text-primary transition-colors">
+                                                        {item.title}
+                                                    </span>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <span className="text-[10px] text-slate-500 font-medium truncate">
+                                                            {item.floor_info}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                                    <div className="text-[9px] font-mono text-slate-400 bg-[#111318] px-1.5 py-0.5 rounded border border-slate-700">
+                                                        X: {item.pos_x || "0"}
+                                                    </div>
+                                                    <div className="text-[9px] font-mono text-slate-400 bg-[#111318] px-1.5 py-0.5 rounded border border-slate-700">
+                                                        Z: {item.pos_z || "0"}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-8 bg-[#111318] rounded-lg border border-dashed border-slate-800">
+                                            <span className="material-symbols-outlined text-slate-700 mb-2">
+                                                inventory_2
+                                            </span>
+                                            <p className="text-xs text-slate-600">등록된 전시품이 없습니다.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
