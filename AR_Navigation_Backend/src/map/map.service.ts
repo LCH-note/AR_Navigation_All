@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { SupabaseService } from '../supabase/supabase.service';
+import { FileStorageService } from '../common/services/file-storage.service';
 import { CreateMapDto } from './dto/create-map.dto';
 import { UpdateMapDto } from './dto/update-map.dto';
 import { MapRepository } from './map.repository';
@@ -8,7 +8,7 @@ import { MapRepository } from './map.repository';
 export class MapService {
   constructor(
     private readonly mapRepository: MapRepository,
-    private readonly supabase: SupabaseService,
+    private readonly fileStorage: FileStorageService,
   ) {}
 
   findAll() {
@@ -38,18 +38,8 @@ export class MapService {
 
   async uploadFile(id: string, file: Express.Multer.File) {
     await this.findOne(id);
-
-    const fileName = `maps/${id}/${Date.now()}_${file.originalname}`;
-    const { error } = await this.supabase.db.storage
-      .from('map-files')
-      .upload(fileName, file.buffer, { contentType: file.mimetype, upsert: true });
-
-    if (error) throw error;
-
-    const { data: { publicUrl } } = this.supabase.db.storage
-      .from('map-files')
-      .getPublicUrl(fileName);
-
+    const filePath = this.fileStorage.buildPath('maps', id, file.originalname);
+    const publicUrl = await this.fileStorage.upload('map-files', filePath, file, true);
     return this.mapRepository.updateFileUrl(id, publicUrl);
   }
 }

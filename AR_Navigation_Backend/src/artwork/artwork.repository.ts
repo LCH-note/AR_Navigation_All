@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { FileStorageService } from '../common/services/file-storage.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateArtworkDto } from './dto/create-artwork.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
 
 @Injectable()
 export class ArtworkRepository {
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly fileStorage: FileStorageService,
+  ) {}
 
   async findAll() {
     const { data, error } = await this.supabase.db
@@ -53,5 +57,10 @@ export class ArtworkRepository {
       .delete()
       .eq('id', id);
     if (error) throw error;
+  }
+
+  async uploadImage(artworkId: string, file: Express.Multer.File): Promise<string> {
+    const filePath = this.fileStorage.buildPath('artwork-images', artworkId, file.originalname);
+    return this.fileStorage.upload('artwork-images', filePath, file);
   }
 }

@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -35,20 +36,33 @@ public class DataSyncManager : MonoBehaviour
     // ── 로드된 데이터 (전역 읽기 전용 접근) ─────────────────────────
     public static NavRoute[]  LoadedRoutes     { get; private set; }
     public static Exhibit[]   LoadedExhibits   { get; private set; }
-    public static string      MapFilePath      { get; private set; }  // persistentDataPath 내 경로
-    public static Texture2D   FloorPlanTexture { get; private set; }
-    public static bool        IsDataReady      { get; private set; }
+    public static string                      MapFilePath        { get; private set; }  // 맵 A (145963)
+    public static string                      MapFilePath2       { get; private set; }  // 맵 B (145962)
+    public static Texture2D                   FloorPlanTexture   { get; private set; }  // 단일 평면도 (레거시 호환)
+    public static Dictionary<string, Texture2D> FloorPlanTextures { get; private set; } // 플로어별 평면도
+    public static bool                        IsDataReady        { get; private set; }
 
     // ── 이벤트 ───────────────────────────────────────────────────────
-    public static event Action         OnDataReady;   // 모든 데이터 로드 완료
-    public static event Action<string> OnLoadError;   // 치명적 오류 발생
+    public static event Action OnDataReady;   // 모든 데이터 로드 완료
+
+    // ── 빌드 내장 맵 파일 (Assets/Maps/) ────────────────────────────
+    [Header("빌드 내장 맵 파일 (Assets/Maps)")]
+    [Tooltip("145963-real2.bytes — 연결 시 백엔드 다운로드를 스킵하고 이 파일을 직접 사용")]
+    [SerializeField] private TextAsset mapAssetA;
+
+    [Tooltip("145962-real.bytes — 연결 시 백엔드 다운로드를 스킵하고 이 파일을 직접 사용")]
+    [SerializeField] private TextAsset mapAssetB;
 
     // ── PlayerPrefs 키 상수 ──────────────────────────────────────────
-    private const string KeyVisitorCounted = "visitor_counted_v1";
-    private const string KeyMapVersion     = "cached_map_version";
-    private const string KeyFloorVersion   = "cached_floor_version";
-    private const string MapFileName       = "immersal_map_data.bytes";
-    private const string FloorPlanFileName = "floor_plan.png";
+    private const string KeyVisitorCounted      = "visitor_counted_v1";
+    private const string KeyMapVersion          = "cached_map_version";
+    private const string KeyMapVersion2         = "cached_map_b_version";
+    private const string KeyFloorVersion        = "cached_floor_version";
+    private const string KeyFloorVersionPrefix  = "cached_fp_v_";   // + floor 이름
+    private const string MapFileName            = "immersal_map_data.bytes";
+    private const string MapFileName2           = "immersal_map_b_data.bytes";
+    private const string FloorPlanFileName      = "floor_plan.png";
+    private const string FloorPlanFilePrefix    = "floor_plan_";    // + floor 이름 + ".png"
 
     // ════════════════════════════════════════════════════════════════
     //  Unity 생명주기
@@ -77,9 +91,8 @@ public class DataSyncManager : MonoBehaviour
         if (ApiClient.Instance == null)
         {
             Debug.LogError("DataSyncManager: ApiClient 인스턴스가 없습니다. 씬에 ApiClient를 배치하세요.");
-            // Mock 데이터로 즉시 준비 상태 전환
-            LoadedRoutes   = MockRoutes.GetAllRoutes();
-            LoadedExhibits = MockExhibits.GetAllExhibits();
+            LoadedRoutes   = new NavRoute[0];
+            LoadedExhibits = new Exhibit[0];
             IsDataReady = true;
             OnDataReady?.Invoke();
             yield break;
@@ -94,8 +107,8 @@ public class DataSyncManager : MonoBehaviour
                 {
                     if (err != null)
                     {
-                        Debug.LogWarning($"DataSyncManager: 경로 로드 실패 — Mock 사용. ({err})");
-                        LoadedRoutes = MockRoutes.GetAllRoutes();
+                        Debug.LogWarning($"DataSyncManager: 경로 로드 실패. ({err})");
+                        LoadedRoutes = new NavRoute[0];
                     }
                     else
                     {
@@ -113,8 +126,8 @@ public class DataSyncManager : MonoBehaviour
                 {
                     if (err != null)
                     {
-                        Debug.LogWarning($"DataSyncManager: 전시물 로드 실패 — Mock 사용. ({err})");
-                        LoadedExhibits = MockExhibits.GetAllExhibits();
+                        Debug.LogWarning($"DataSyncManager: 전시물 로드 실패. ({err})");
+                        LoadedExhibits = new Exhibit[0];
                     }
                     else
                     {
@@ -123,17 +136,34 @@ public class DataSyncManager : MonoBehaviour
                     }
                 }));
 
-        // ③ 맵 데이터 파일 (버전 체크 후 조건부 다운로드)
-        yield return StartCoroutine(
-            FetchAssetIfNeeded(
-                endpoint:   "/assets/map",
-                fileName:   MapFileName,
-                versionKey: KeyMapVersion,
-                isTexture:  false,
-                onFile:     path => { MapFilePath = path; },
-                onTexture:  null));
+        // ③ 맵 A 데이터 파일 (145963)
+        // Inspector에 TextAsset이 연결된 경우 빌드 내장 파일을 직접 사용, 없으면 백엔드 다운로드
+        if (mapAssetA != null)
+            WriteBuiltInMap(mapAssetA, MapFileName, path => { MapFilePath = path; });
+        else
+            yield return StartCoroutine(
+                FetchAssetIfNeeded(
+                    endpoint:   "/assets/map",
+                    fileName:   MapFileName,
+                    versionKey: KeyMapVersion,
+                    isTexture:  false,
+                    onFile:     path => { MapFilePath = path; },
+                    onTexture:  null));
 
-        // ④ 2D 평면도 (버전 체크 후 조건부 다운로드)
+        // ④ 맵 B 데이터 파일 (145962)
+        if (mapAssetB != null)
+            WriteBuiltInMap(mapAssetB, MapFileName2, path => { MapFilePath2 = path; });
+        else
+            yield return StartCoroutine(
+                FetchAssetIfNeeded(
+                    endpoint:   "/assets/map-b",
+                    fileName:   MapFileName2,
+                    versionKey: KeyMapVersion2,
+                    isTexture:  false,
+                    onFile:     path => { MapFilePath2 = path; },
+                    onTexture:  null));
+
+        // ⑤ 2D 평면도 단일 (레거시 호환 — ARMapScreen 오버레이용)
         yield return StartCoroutine(
             FetchAssetIfNeeded(
                 endpoint:   "/assets/floor-plan",
@@ -143,9 +173,27 @@ public class DataSyncManager : MonoBehaviour
                 onFile:     null,
                 onTexture:  tex => { FloorPlanTexture = tex; }));
 
+        // ⑥ 플로어별 2D 평면도 (MapScreen 전체 지도 화면용)
+        FloorPlanTextures = new Dictionary<string, Texture2D>();
+        yield return StartCoroutine(LoadAllFloorPlansAsync());
+
         IsDataReady = true;
         Debug.Log("DataSyncManager: 모든 데이터 초기화 완료");
         OnDataReady?.Invoke();
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  빌드 내장 맵 파일 로드 (TextAsset → persistentDataPath 기록)
+    // ════════════════════════════════════════════════════════════════
+
+    // TextAsset 바이트를 persistentDataPath에 쓰고 경로를 콜백으로 전달합니다.
+    // Immersal SDK가 파일 경로를 필요로 할 때를 대비해 persistentDataPath에 기록해 둡니다.
+    private void WriteBuiltInMap(TextAsset asset, string fileName, Action<string> onFile)
+    {
+        string localPath = Path.Combine(Application.persistentDataPath, fileName);
+        File.WriteAllBytes(localPath, asset.bytes);
+        onFile?.Invoke(localPath);
+        Debug.Log($"DataSyncManager: {asset.name} — 내장 맵 파일 로드 완료 → {localPath}");
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -175,16 +223,20 @@ public class DataSyncManager : MonoBehaviour
                         response = res;
                 }));
 
-        if (response == null)
+        // 조회 실패 또는 아직 업로드된 파일 없음 → 로컬 캐시가 있으면 사용
+        if (response == null || string.IsNullOrEmpty(response.fileUrl))
         {
-            // 조회 실패 → 로컬 캐시가 있으면 사용
             if (File.Exists(localPath))
             {
-                Debug.Log($"DataSyncManager: {fileName} — 서버 조회 실패, 로컬 캐시 사용");
+                Debug.Log($"DataSyncManager: {fileName} — 서버에 파일 없음, 로컬 캐시 사용");
                 if (!isTexture)
                     onFile?.Invoke(localPath);
                 else
                     yield return StartCoroutine(LoadTextureFromFile(localPath, onTexture));
+            }
+            else
+            {
+                Debug.Log($"DataSyncManager: {fileName} — 서버에 파일 없음, 로컬 캐시도 없음. 스킵");
             }
             yield break;
         }
@@ -247,6 +299,79 @@ public class DataSyncManager : MonoBehaviour
     }
 
     // ════════════════════════════════════════════════════════════════
+    //  플로어별 2D 평면도 로딩 (MapScreen 전체 지도 화면용)
+    // ════════════════════════════════════════════════════════════════
+
+    // GET /assets/floor-plans → FloorPlanDto[] → FloorPlanTextures 딕셔너리 채움
+    private IEnumerator LoadAllFloorPlansAsync()
+    {
+        FloorPlanDto[] plans = null;
+        yield return StartCoroutine(
+            ApiClient.Instance.GetArrayAsync<FloorPlanDto, FloorPlanListWrapper>(
+                "/assets/floor-plans",
+                wrap => wrap.items,
+                (dtos, err) =>
+                {
+                    if (err != null)
+                        Debug.LogWarning($"DataSyncManager: 플로어 평면도 목록 로드 실패. ({err})");
+                    else
+                        plans = dtos;
+                }));
+
+        if (plans == null || plans.Length == 0)
+        {
+            Debug.Log("DataSyncManager: 등록된 플로어 평면도 없음");
+            yield break;
+        }
+
+        foreach (var fp in plans)
+        {
+            if (string.IsNullOrEmpty(fp.fileUrl)) continue;
+            yield return StartCoroutine(LoadFloorPlanTextureAsync(fp));
+        }
+        Debug.Log($"DataSyncManager: 플로어 평면도 {FloorPlanTextures.Count}개 로드 완료 " +
+                  $"({string.Join(", ", FloorPlanTextures.Keys)})");
+    }
+
+    // 단일 플로어 평면도를 버전 체크 후 조건부 다운로드해 FloorPlanTextures에 저장
+    private IEnumerator LoadFloorPlanTextureAsync(FloorPlanDto dto)
+    {
+        string versionKey = KeyFloorVersionPrefix + dto.floor;
+        string fileName   = FloorPlanFilePrefix + dto.floor + ".png";
+        string localPath  = Path.Combine(Application.persistentDataPath, fileName);
+
+        // 캐시 유효 시 로컬 파일 사용
+        bool isCacheValid = PlayerPrefs.GetString(versionKey, "") == dto.version
+                            && File.Exists(localPath);
+        if (isCacheValid)
+        {
+            yield return StartCoroutine(LoadTextureFromFile(localPath,
+                tex => { FloorPlanTextures[dto.floor] = tex; }));
+            Debug.Log($"DataSyncManager: {dto.floor} 평면도 캐시 사용 (버전 {dto.version})");
+            yield break;
+        }
+
+        // 새 버전 다운로드
+        Debug.Log($"DataSyncManager: {dto.floor} 평면도 다운로드 시작");
+        yield return StartCoroutine(
+            ApiClient.Instance.DownloadTextureAsync(
+                dto.fileUrl,
+                (tex, err) =>
+                {
+                    if (err != null)
+                    {
+                        Debug.LogWarning($"DataSyncManager: {dto.floor} 평면도 다운로드 실패. ({err})");
+                        return;
+                    }
+                    File.WriteAllBytes(localPath, tex.EncodeToPNG());
+                    PlayerPrefs.SetString(versionKey, dto.version);
+                    PlayerPrefs.Save();
+                    FloorPlanTextures[dto.floor] = tex;
+                    Debug.Log($"DataSyncManager: {dto.floor} 평면도 저장 완료");
+                }));
+    }
+
+    // ════════════════════════════════════════════════════════════════
     //  방문자 카운팅 (UIManager.OnStartClicked 에서 호출)
     // ════════════════════════════════════════════════════════════════
 
@@ -306,7 +431,8 @@ public class DataSyncManager : MonoBehaviour
     {
         if (ApiClient.Instance == null) { callback?.Invoke(false); yield break; }
 
-        var request = new ReviewRequest { rating = rating, comment = comment };
+        // content 필드명으로 전송 — 백엔드 CreateReviewDto.content 와 일치
+        var request = new ReviewRequest { rating = rating, content = comment };
 
         yield return StartCoroutine(
             ApiClient.Instance.PostAsync(
@@ -345,7 +471,8 @@ public class DataSyncManager : MonoBehaviour
                 {
                     localPosition = new Vector3(wp.x, wp.y, wp.z),
                     displayName   = wp.displayName,
-                    instruction   = wp.instruction
+                    instruction   = wp.instruction,
+                    mapIndex      = wp.mapIndex
                 };
             }
 
@@ -378,7 +505,10 @@ public class DataSyncManager : MonoBehaviour
                 artist        = dto.artist,
                 hall          = dto.hall,
                 docentText    = dto.docentText,
-                localPosition = new Vector3(dto.x, dto.y, dto.z)
+                imageUrl      = dto.imageUrl,
+                feature       = dto.feature,
+                localPosition = new Vector3(dto.x, dto.y, dto.z),
+                mapIndex      = dto.mapIndex
             };
         }
         return result;

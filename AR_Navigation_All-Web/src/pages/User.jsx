@@ -14,11 +14,12 @@ function Index() {
     // --- 리뷰 데이터 패칭 함수 ---
     const fetchReviews = async () => {
         try {
-            // 백엔드의 리뷰 조회 API 호출
-            const response = await fetch("http://localhost:3000/api/reviews");
+            // NestJS ReviewController의 GET /api/reviews 호출 (인증 불필요)
+            const response = await fetch("/api/reviews");
             if (response.ok) {
-                const data = await response.json();
-                setReviewsData(data);
+                // NestJS ResponseInterceptor가 { success, data } 형태로 래핑
+                const result = await response.json();
+                setReviewsData(result.data);
             }
         } catch (error) {
             console.error("리뷰 데이터 로드 실패:", error);
@@ -28,6 +29,31 @@ function Index() {
     useEffect(() => {
         fetchReviews();
     }, []);
+
+    // --- 리뷰 삭제 핸들러 ---
+    const handleDeleteReview = async (id) => {
+        // 삭제 전 사용자 확인 다이얼로그 표시
+        if (!window.confirm("이 리뷰를 삭제하시겠습니까?")) return;
+
+        try {
+            // NestJS ReviewController의 DELETE /api/reviews/:id 호출
+            // 현재 웹에 JWT 인증 미구현 — 가드가 걸린 경우 403 반환될 수 있음
+            const response = await fetch(`/api/reviews/${id}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                // 삭제 성공 시 목록 갱신
+                fetchReviews();
+            } else {
+                // 권한 오류(403) 등 실패 케이스 처리
+                alert("삭제 실패: 권한이 없습니다.");
+            }
+        } catch (error) {
+            console.error("리뷰 삭제 오류:", error);
+            alert("삭제 실패: 권한이 없습니다.");
+        }
+    };
 
     // --- 페이지네이션 계산 로직 ---
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -157,16 +183,20 @@ function Index() {
                                         <th className="p-4 font-medium border-b border-slate-800 w-1/2">리뷰 내용</th>
                                         <th className="p-4 font-medium border-b border-slate-800 w-24">별점</th>
                                         <th className="p-4 font-medium border-b border-slate-800 w-32">작성일</th>
+                                        {/* 리뷰 삭제 버튼 열 헤더 */}
+                                        <th className="p-4 font-medium border-b border-slate-800 w-20 text-center">관리</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm divide-y divide-slate-800">
                                     {currentItems.map((item) => (
                                         <TableRow
-                                            key={item.review_id}
+                                            key={item.id}
+                                            id={item.id}
                                             nickname={item.nickname}
                                             content={item.content}
-                                            star={item.star}
+                                            star={item.rating}
                                             date={item.created_at}
+                                            onDelete={handleDeleteReview}
                                         />
                                     ))}
                                 </tbody>
@@ -234,8 +264,8 @@ function SidebarClock() {
 }
 
 // --- 테이블 행 렌더링 컴포넌트 ---
-// props에서 title을 제거하고, 렌더링에서도 제외
-function TableRow({ nickname, content, star, date }) {
+// id, onDelete prop 추가 — 삭제 버튼 클릭 시 handleDeleteReview 호출
+function TableRow({ id, nickname, content, star, date, onDelete }) {
     // 날짜 포맷팅 로직 (YYYY-MM-DD)
     const formattedDate = date ? new Date(date).toLocaleDateString() : "-";
 
@@ -258,6 +288,18 @@ function TableRow({ nickname, content, star, date }) {
             <td className="p-4 text-white text-sm">{content}</td>
             <td className="p-4 font-mono">{renderStars()}</td>
             <td className="p-4 text-slate-400 text-xs font-mono">{formattedDate}</td>
+            {/* 삭제 버튼 셀 — 휴지통 아이콘(Material Symbol) 사용 */}
+            <td className="p-4 text-center">
+                <button
+                    onClick={() => onDelete(id)}
+                    className="text-red-500 hover:text-red-400 text-xs flex items-center justify-center mx-auto"
+                    title="리뷰 삭제"
+                >
+                    <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
+                        delete
+                    </span>
+                </button>
+            </td>
         </tr>
     );
 }

@@ -1,10 +1,8 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AdminGuard } from '../auth/guards/admin.guard';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Controller, Get } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 
+// 웹 대시보드에서 인증 없이 조회 — 추후 JWT 로그인 구현 시 가드 복원
 @Controller('analytics')
-@UseGuards(JwtAuthGuard, AdminGuard)
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 

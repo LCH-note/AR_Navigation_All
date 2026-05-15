@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 function Index() {
     const [currentFloor, setCurrentFloor] = useState(1);
@@ -7,28 +7,76 @@ function Index() {
     const itemsPerPage = 5;
 
     const [artifactsData, setArtifactsData] = useState([]);
+    const [userCount, setUserCount] = useState(null);
+    const [avgRating, setAvgRating] = useState(null);
+    const [ageGroups, setAgeGroups] = useState([]);
 
     const floorImages = {
-        1: "/images/floor_1.jpg",
-        2: "/images/floor_2.jpg",
-        3: "/images/floor_3.jpg",
-        4: "/images/floor_B1.jpg",
+        1: '/images/floor_1.jpg',
+        2: '/images/floor_2.jpg',
+        3: '/images/floor_3.jpg',
+        4: '/images/floor_B1.jpg',
     };
 
     const fetchArtifacts = async () => {
         try {
-            const response = await fetch("http://localhost:3000/api/display");
+            const response = await fetch('/api/artworks');
             if (response.ok) {
-                const data = await response.json();
-                setArtifactsData(data);
+                // NestJS ResponseInterceptor가 { success, data } 형태로 래핑
+                const result = await response.json();
+                setArtifactsData(result.data);
             }
         } catch (error) {
-            console.error("데이터 로드 실패:", error);
+            console.error('전시품 데이터 로드 실패:', error);
+        }
+    };
+
+    const fetchAnalytics = async () => {
+        try {
+            const [countRes, statsRes, ageRes] = await Promise.all([
+                fetch('/api/analytics/user-count'),
+                fetch('/api/analytics/artwork-stats'),
+                fetch('/api/analytics/age-groups'),
+            ]);
+
+            if (countRes.ok) {
+                const r = await countRes.json();
+                setUserCount(r.data);
+            }
+
+            if (statsRes.ok) {
+                const r = await statsRes.json();
+                const stats = r.data;
+                if (stats && stats.length > 0) {
+                    const totalReviews = stats.reduce((s, x) => s + x.review_count, 0);
+                    const weightedSum = stats.reduce((s, x) => s + x.average_rating * x.review_count, 0);
+                    setAvgRating(totalReviews > 0 ? (weightedSum / totalReviews).toFixed(1) : null);
+                }
+            }
+
+            if (ageRes.ok) {
+                const r = await ageRes.json();
+                const raw = r.data;
+                // visitors 테이블의 age_group은 앱에서 한국어로 직접 저장됨
+                const total = Object.values(raw).reduce((s, v) => s + v, 0);
+                const sorted = Object.entries(raw)
+                    .map(([key, count]) => ({
+                        label: key,
+                        count,
+                        percent: total > 0 ? Math.round((count / total) * 100) : 0,
+                    }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 4);
+                setAgeGroups(sorted);
+            }
+        } catch (error) {
+            console.error('분석 데이터 로드 실패:', error);
         }
     };
 
     useEffect(() => {
         fetchArtifacts();
+        fetchAnalytics();
     }, []);
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -61,7 +109,7 @@ function Index() {
                             to="/"
                             className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border-l-4 border-primary transition-colors"
                         >
-                            <span className="material-symbols-outlined icon-filled" style={{ fontSize: "24px" }}>
+                            <span className="material-symbols-outlined icon-filled" style={{ fontSize: '24px' }}>
                                 dashboard
                             </span>
                             <span className="text-sm font-medium">홈</span>
@@ -70,7 +118,7 @@ function Index() {
                             to="/space"
                             className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors"
                         >
-                            <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
                                 map
                             </span>
                             <span className="text-sm font-medium">공간 관리</span>
@@ -79,7 +127,7 @@ function Index() {
                             to="/content"
                             className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors"
                         >
-                            <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
                                 inventory_2
                             </span>
                             <span className="text-sm font-medium">전시콘텐츠 관리</span>
@@ -88,7 +136,7 @@ function Index() {
                             to="/user"
                             className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors"
                         >
-                            <span className="material-symbols-outlined" style={{ fontSize: "24px" }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
                                 rate_review
                             </span>
                             <span className="text-sm font-medium">사용자 리뷰 관리</span>
@@ -119,10 +167,18 @@ function Index() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <KpiCard icon="groups" title="총 관람객 수" value="12,450" />
+                        <KpiCard
+                            icon="groups"
+                            title="총 관람객 수"
+                            value={userCount !== null ? userCount.toLocaleString() : '—'}
+                        />
                         <KpiCard icon="category" title="등록된 전시품 갯수" value={`${artifactsData.length}개`} />
-                        <KpiCard icon="view_in_ar" title="AR 활성화 횟수" value="8,932" />
-                        <KpiCard icon="star" title="사용자 만족도" value="4.8/5.0" />
+                        <KpiCard icon="view_in_ar" title="AR 활성화 횟수" value="—" />
+                        <KpiCard
+                            icon="star"
+                            title="사용자 만족도"
+                            value={avgRating !== null ? `${avgRating}/5.0` : '—'}
+                        />
                     </div>
 
                     <div>
@@ -159,16 +215,16 @@ function Index() {
                             <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-[#151a25]">
                                 <h3 className="text-white font-bold flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary">map</span>
-                                    Museum 3D Map ({currentFloor === 4 ? "지하 1층" : `${currentFloor}층`})
+                                    Museum Map ({currentFloor === 4 ? '지하 1층' : `${currentFloor}층`})
                                 </h3>
                                 <div className="flex gap-2">
                                     {[1, 2, 3, 4].map((floor) => (
                                         <button
                                             key={floor}
                                             onClick={() => setCurrentFloor(floor)}
-                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors border ${currentFloor === floor ? "bg-primary text-white border-primary shadow-sm" : "bg-[#1e2430] text-slate-400 border-slate-700 hover:text-white hover:bg-[#252c3b]"}`}
+                                            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors border ${currentFloor === floor ? 'bg-primary text-white border-primary shadow-sm' : 'bg-[#1e2430] text-slate-400 border-slate-700 hover:text-white hover:bg-[#252c3b]'}`}
                                         >
-                                            {floor === 4 ? "지하 1층" : `${floor}층`}
+                                            {floor === 4 ? '지하 1층' : `${floor}층`}
                                         </button>
                                     ))}
                                 </div>
@@ -193,26 +249,26 @@ function Index() {
                                     {/* \n을 사용하여 줄바꿈 데이터 전달 */}
                                     <SequenceStep
                                         title="Floor B1"
-                                        value={"A : 4수장고\nB : 5수장고(보이는 수장고)"}
+                                        value={'A : 4수장고\nB : 5수장고(보이는 수장고)'}
                                         color="border-l-blue-500 text-blue-400"
                                     />
                                     <SequenceStep
                                         title="Floor F1"
                                         value={
-                                            "A : 출입문\nB : 학교사 전시실\nC : 1수장고(보이는 수장고)\nD : 2수장고(보이는 수장고)\nE : 3수장고\n* 여성화정실, 여성장애인화장실"
+                                            'A : 출입문\nB : 학교사 전시실\nC : 1수장고(보이는 수장고)\nD : 2수장고(보이는 수장고)\nE : 3수장고\n* 여성화정실, 여성장애인화장실'
                                         }
                                         color="border-l-blue-500 text-blue-400"
                                     />
                                     <SequenceStep
                                         title="Floor F2"
                                         value={
-                                            "A : 기증자 전시실\nB : 김조자 기획전시실\nC : 체엄 실습실\nD : 명예의전당\nE : 강의실\n* 남성화장실, 남성장애인화장실"
+                                            'A : 기증자 전시실\nB : 김조자 기획전시실\nC : 체엄 실습실\nD : 명예의전당\nE : 강의실\n* 남성화장실, 남성장애인화장실'
                                         }
                                         color="border-l-blue-500 text-blue-400"
                                     />
                                     <SequenceStep
                                         title="Floor F3"
-                                        value={"A : 상설 전시실"}
+                                        value={'A : 상설 전시실'}
                                         color="border-l-blue-500 text-blue-400"
                                     />
                                 </div>
@@ -221,28 +277,22 @@ function Index() {
                             <div className="bg-[#151a25] border border-slate-800 rounded-xl p-5 shadow-sm">
                                 <h3 className="text-white font-bold mb-4">방문 연령대</h3>
                                 <div className="flex flex-col gap-4">
-                                    <RankingBar
-                                        rank="1"
-                                        title="20-30대"
-                                        time="45%"
-                                        percent="45%"
-                                        barColor="bg-rose-500"
-                                    />
-                                    <RankingBar
-                                        rank="2"
-                                        title="40-50대"
-                                        time="32%"
-                                        percent="32%"
-                                        barColor="bg-orange-500"
-                                    />
-                                    <RankingBar
-                                        rank="3"
-                                        title="10대"
-                                        time="15%"
-                                        percent="15%"
-                                        barColor="bg-amber-500"
-                                    />
-                                    <RankingBar rank="4" title="60대" time="8%" percent="8%" barColor="bg-blue-500" />
+                                    {ageGroups.length > 0 ? (
+                                        ageGroups.map((g, i) => (
+                                            <RankingBar
+                                                key={g.label}
+                                                rank={String(i + 1)}
+                                                title={g.label}
+                                                time={`${g.percent}%`}
+                                                percent={`${g.percent}%`}
+                                                barColor={
+                                                    ['bg-rose-500', 'bg-orange-500', 'bg-amber-500', 'bg-blue-500'][i]
+                                                }
+                                            />
+                                        ))
+                                    ) : (
+                                        <p className="text-slate-500 text-sm text-center py-4">설문 데이터 없음</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -309,14 +359,14 @@ function SidebarClock() {
     }, []);
 
     const year = currentTime.getFullYear();
-    const month = String(currentTime.getMonth() + 1).padStart(2, "0");
-    const day = String(currentTime.getDate()).padStart(2, "0");
+    const month = String(currentTime.getMonth() + 1).padStart(2, '0');
+    const day = String(currentTime.getDate()).padStart(2, '0');
 
     // getDay()를 이용해 0(일요일)부터 6(토요일)까지의 값을 요일 문자열로 변환
-    const dayOfWeek = ["일", "월", "화", "수", "목", "금", "토"][currentTime.getDay()];
+    const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][currentTime.getDay()];
 
-    const hours = String(currentTime.getHours()).padStart(2, "0");
-    const minutes = String(currentTime.getMinutes()).padStart(2, "0");
+    const hours = String(currentTime.getHours()).padStart(2, '0');
+    const minutes = String(currentTime.getMinutes()).padStart(2, '0');
 
     return (
         <div className="mt-auto pt-6 border-t border-slate-800">
@@ -394,7 +444,7 @@ function SequenceStep({ title, value, color }) {
             >
                 <p className="text-slate-200 text-xs font-bold mb-0.5">{title}</p>
                 {/* whiteSpace: "pre-wrap"을 추가하여 \n 줄바꿈이 적용되게 함 */}
-                <p className="text-[11px] opacity-80 font-mono leading-relaxed" style={{ whiteSpace: "pre-wrap" }}>
+                <p className="text-[11px] opacity-80 font-mono leading-relaxed" style={{ whiteSpace: 'pre-wrap' }}>
                     {value}
                 </p>
             </div>

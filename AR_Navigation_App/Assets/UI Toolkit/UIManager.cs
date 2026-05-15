@@ -43,6 +43,12 @@ public class UIManager : MonoBehaviour
     [Tooltip("리뷰 작성 화면 UI 로직")]
     [SerializeField] private UserReviewController userReviewController;
 
+    [Tooltip("AR 공간 도슨트 패널 관리 컨트롤러")]
+    [SerializeField] private DocentManager docentManager;
+
+    [Tooltip("전체 지도 화면 플로어별 평면도 컨트롤러")]
+    [SerializeField] private FloorMapController floorMapController;
+
     // ── UI 내부 참조 (런타임에 UIDocument 에서 쿼리) ─────────────────
     private UIDocument    _uiDocument;
     private VisualElement _root;
@@ -68,6 +74,8 @@ public class UIManager : MonoBehaviour
     private Button _btnStartUserNavigation;  // 전시품 선택 후 "안내 시작"
     private Button _btnBackAR;              // AR 화면 "← 나가기"
     private Button _btnTogglePath;           // AR 화면 경로선 토글
+    private Button _btnToggleArrow;          // AR 화면 화살표 토글
+    private Button _btnToggleDocent;         // AR 화면 도슨트 패널 토글
     private Button _btnReview;               // 메인 화면 "리뷰 작성하기"
     private Button _btnBackReview;           // 리뷰 화면 "Back"
     private Button _btnSubmitReview;         // 리뷰 화면 "리뷰 남기기"
@@ -83,6 +91,20 @@ public class UIManager : MonoBehaviour
     // ════════════════════════════════════════════════════════════════
     //  Unity 생명주기
     // ════════════════════════════════════════════════════════════════
+
+    void Awake()
+    {
+        // Inspector 에서 연결되지 않은 경우 같은 GameObject 또는 씬에서 자동 탐색
+        if (docentManager == null)
+            docentManager = GetComponent<DocentManager>();
+        if (docentManager == null)
+            docentManager = FindObjectOfType<DocentManager>();
+
+        if (floorMapController == null)
+            floorMapController = GetComponent<FloorMapController>();
+        if (floorMapController == null)
+            floorMapController = FindObjectOfType<FloorMapController>();
+    }
 
     void OnEnable()
     {
@@ -124,7 +146,10 @@ public class UIManager : MonoBehaviour
         }
 
         if (_mapScreen != null)
+        {
             SetupButton(_mapScreen, "btn-back-map", ref _btnBackMap, OnBackToMainClicked);
+            floorMapController?.Initialize(_mapScreen);
+        }
 
         if (_routeSelectScreen != null)
         {
@@ -141,8 +166,10 @@ public class UIManager : MonoBehaviour
 
         if (_arMapScreen != null)
         {
-            SetupButton(_arMapScreen, "btn-back-ar",     ref _btnBackAR,      OnBackFromARClicked);
-            SetupButton(_arMapScreen, "btn-toggle-path", ref _btnTogglePath,  OnTogglePathClicked);
+            SetupButton(_arMapScreen, "btn-back-ar",        ref _btnBackAR,         OnBackFromARClicked);
+            SetupButton(_arMapScreen, "btn-toggle-path",    ref _btnTogglePath,     OnTogglePathClicked);
+            SetupButton(_arMapScreen, "btn-toggle-arrow",   ref _btnToggleArrow,    OnToggleArrowClicked);
+            SetupButton(_arMapScreen, "btn-toggle-docent",  ref _btnToggleDocent,   OnToggleDocentClicked);
         }
 
         if (_reviewScreen != null)
@@ -169,6 +196,8 @@ public class UIManager : MonoBehaviour
         if (_btnStartUserNavigation!= null) _btnStartUserNavigation.clicked-= OnStartUserNavigationClicked;
         if (_btnBackAR             != null) _btnBackAR.clicked             -= OnBackFromARClicked;
         if (_btnTogglePath         != null) _btnTogglePath.clicked         -= OnTogglePathClicked;
+        if (_btnToggleArrow        != null) _btnToggleArrow.clicked        -= OnToggleArrowClicked;
+        if (_btnToggleDocent       != null) _btnToggleDocent.clicked       -= OnToggleDocentClicked;
         if (_btnReview             != null) _btnReview.clicked             -= OnReviewClicked;
         if (_btnBackReview         != null) _btnBackReview.clicked         -= OnBackFromReviewClicked;
         if (_btnSubmitReview       != null) _btnSubmitReview.clicked       -= OnSubmitReviewClicked;
@@ -262,7 +291,11 @@ public class UIManager : MonoBehaviour
     }
 
     // 메인 화면 "View Full Map" → 전체 지도 화면
-    private void OnViewMapClicked() => ShowScreen(_mapScreen);
+    private void OnViewMapClicked()
+    {
+        floorMapController?.OnScreenShown();
+        ShowScreen(_mapScreen);
+    }
 
     // 메인 화면 "Select Route" → 추천 경로 선택 화면
     private void OnSelectRouteClicked()
@@ -331,7 +364,12 @@ public class UIManager : MonoBehaviour
             Debug.LogError($"UIManager: StartNavigationToAll 예외: {e.Message}");
         }
 
+        // 도슨트 패널 초기화 (AR 화면 진입 시 전시품 위치에 패널 생성, 초기 숨김)
+        docentManager?.Initialize(DataSyncManager.LoadedExhibits);
+        SyncToggleDocentButton();
+
         SyncTogglePathButton();
+        SyncToggleArrowButton();
     }
 
     // 전시품 선택 화면 "선택한 전시품 안내 시작" → AR 내비게이션 화면
@@ -361,7 +399,12 @@ public class UIManager : MonoBehaviour
             Debug.LogError($"UIManager: StartNavigationToAll 예외: {e.Message}");
         }
 
+        // 도슨트 패널 초기화
+        docentManager?.Initialize(DataSyncManager.LoadedExhibits);
+        SyncToggleDocentButton();
+
         SyncTogglePathButton();
+        SyncToggleArrowButton();
     }
 
     // 메인 화면 "리뷰 작성하기" → 리뷰 작성 화면
@@ -386,6 +429,8 @@ public class UIManager : MonoBehaviour
     {
         // 진행 중인 내비게이션 종료 및 화살표·유도선 오브젝트 삭제
         arNavigationController?.StopNavigation();
+        // 도슨트 패널 숨김 (AR 화면 이탈 시 정리)
+        docentManager?.HideAll();
         ShowScreen(_mainScreen);
     }
 
@@ -408,6 +453,43 @@ public class UIManager : MonoBehaviour
             _btnTogglePath.RemoveFromClassList("ar-toggle-path-button--hidden");
         else
             _btnTogglePath.AddToClassList("ar-toggle-path-button--hidden");
+    }
+
+    // AR 화면 "화살표 보기/숨기기" 토글 버튼
+    private void OnToggleArrowClicked()
+    {
+        if (arNavigationController == null) return;
+        arNavigationController.ToggleArrow();
+        SyncToggleArrowButton();
+    }
+
+    // 토글 버튼 텍스트·스타일을 현재 IsArrowVisible 값에 맞게 동기화
+    private void SyncToggleArrowButton()
+    {
+        if (_btnToggleArrow == null || arNavigationController == null) return;
+
+        bool visible = arNavigationController.IsArrowVisible;
+        _btnToggleArrow.text = visible ? "화살표 숨기기" : "화살표 보기";
+        if (visible)
+            _btnToggleArrow.RemoveFromClassList("ar-toggle-arrow-button--hidden");
+        else
+            _btnToggleArrow.AddToClassList("ar-toggle-arrow-button--hidden");
+    }
+
+    // AR 화면 "도슨트 ON/OFF" 토글 버튼
+    private void OnToggleDocentClicked()
+    {
+        if (docentManager == null) return;
+        docentManager.ToggleDocents();
+        SyncToggleDocentButton();
+    }
+
+    // 도슨트 버튼 텍스트를 현재 IsDocentVisible 값에 맞게 동기화
+    private void SyncToggleDocentButton()
+    {
+        if (_btnToggleDocent == null || docentManager == null) return;
+        // 도슨트가 표시 중이면 "도슨트 OFF", 숨김이면 "도슨트 ON"
+        _btnToggleDocent.text = docentManager.IsDocentVisible ? "도슨트 OFF" : "도슨트 ON";
     }
 
     // ════════════════════════════════════════════════════════════════

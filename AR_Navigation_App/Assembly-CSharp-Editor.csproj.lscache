@@ -53,6 +53,7 @@ TemporaryDependencyNodeTargetIdentifier=netstandard2.1
 [sourceFiles]
 Assets/Editor/
  NavMeshBaker.cs
+ NavMeshFitToARMap.cs
  XRMapVisualizationEditor.cs
 Temp/obj/Debug/Assembly-CSharp-Editor/.NETStandard,Version=v2.1.AssemblyAttributes.cs
 
@@ -314,6 +315,10 @@ Library/ScriptAssemblies/
  Unity.Mobile.AndroidLogcat.Editor.dll
  Unity.Performance.Profile-Analyzer.Editor.dll
  Unity.PlasticSCM.Editor.dll
+ Unity.ProBuilder.AddOns.Editor.dll
+ Unity.ProBuilder.AssetIdRemapUtility.dll
+ Unity.ProBuilder.dll
+ Unity.ProBuilder.Editor.dll
  Unity.RenderPipeline.Universal.ShaderLibrary.dll
  Unity.RenderPipelines.Core.Editor.dll
  Unity.RenderPipelines.Core.Runtime.dll

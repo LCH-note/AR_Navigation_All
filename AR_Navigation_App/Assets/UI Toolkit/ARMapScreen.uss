@@ -79,13 +79,30 @@
     -unity-font-style: bold;
 }
 
-/* 나침반 방위 레이블 (우측) */
+/* 나침반 방위 레이블 */
 .ar-compass-label {
-    width: 150px;
-    -unity-text-align: middle-right;
     font-size: 33px;
     color: rgb(100, 140, 230);
     -unity-font-style: bold;
+}
+
+/* 도슨트 토글 버튼 (상단 HUD 우측) */
+.ar-docent-button {
+    width: 156px;
+    height: 66px;
+    background-color: rgba(41, 69, 159, 0.80);
+    color: rgb(255, 255, 255);
+    font-size: 24px;
+    border-radius: 33px;
+    border-width: 2px;
+    border-color: rgba(100, 140, 230, 0.60);
+    -unity-font-style: bold;
+    margin-left: 12px;
+}
+
+.ar-docent-button:active {
+    background-color: rgba(30, 50, 120, 0.95);
+    scale: 0.97;
 }
 
 /* ════════════════════════════════════════════════
@@ -212,6 +229,33 @@
 
 /* 유도선이 숨겨진 상태: 버튼을 흐리게 표시 */
 .ar-toggle-path-button--hidden {
+    background-color: rgba(24, 34, 60, 0.75);
+    color: rgba(255, 255, 255, 0.50);
+    border-color: rgba(41, 69, 159, 0.30);
+}
+
+/* 화살표 토글 버튼: 하단 HUD 우측에 배치 */
+.ar-toggle-arrow-button {
+    flex-grow: 1;
+    height: 66px;
+    background-color: rgba(41, 69, 159, 0.75);
+    color: rgb(255, 255, 255);
+    font-size: 24px;
+    border-radius: 33px;
+    border-width: 2px;
+    border-color: rgba(100, 140, 230, 0.50);
+    -unity-font-style: bold;
+    margin-left: 12px;
+    margin-right: 36px;
+}
+
+.ar-toggle-arrow-button:active {
+    background-color: rgba(30, 50, 120, 0.90);
+    scale: 0.97;
+}
+
+/* 화살표가 숨겨진 상태: 버튼을 흐리게 표시 */
+.ar-toggle-arrow-button--hidden {
     background-color: rgba(24, 34, 60, 0.75);
     color: rgba(255, 255, 255, 0.50);
     border-color: rgba(41, 69, 159, 0.30);

@@ -2,12 +2,12 @@
     파일명: Assets/Navigation/RouteSelectUserController.cs
     역할: 전시품 직접 선택 화면(RouteSelectScreenUser)의 UI 로직
       - 전시품 카드를 ScrollView에 동적 생성
-      - 다중 선택 관리 — 선택 순서가 경유 순서가 됨
+      - 다중 선택 관리 — 선택 여부만 기록 (순서는 자동 최적화)
       - 선택된 전시품으로 NavRoute 를 생성해 UIManager 에 제공
     흐름:
       1. UIManager 가 화면 전환 전 OnScreenShown() 호출
-      2. 사용자가 카드 탭 → 선택/해제 토글, 선택 순번 뱃지 표시
-      3. UIManager 가 GetUserRoute() 호출 → ARNavigationController 에 전달
+      2. 사용자가 카드 탭 → 선택/해제 토글
+      3. UIManager 가 GetUserRoute() 호출 → 최적 경로 계산 후 ARNavigationController 에 전달
 */
 
 using System.Collections.Generic;
@@ -22,9 +22,9 @@ public class RouteSelectUserController : MonoBehaviour
     [SerializeField] private UIDocument uiDocument;
 
     // ── 내부 상태 ────────────────────────────────────────────────────
-    private Exhibit[]            _exhibits;         // 전체 전시품 목록
-    private List<int>            _selectedOrder;    // 선택된 인덱스 (순서 유지)
-    private VisualElement[]      _cards;            // 동적 생성 카드 배열
+    private Exhibit[]       _exhibits;         // 전체 전시품 목록
+    private HashSet<int>    _selectedIndices;  // 선택된 전시품 인덱스 집합 (순서 무관)
+    private VisualElement[] _cards;            // 동적 생성 카드 배열
 
     private ScrollView           _scrollView;
     private Button               _btnStart;
@@ -43,27 +43,30 @@ public class RouteSelectUserController : MonoBehaviour
     {
         if (!TryGetUIReferences()) return;
 
-        // 전시물 데이터 로드 (DataSyncManager 로드 완료 시 서버 데이터, 미완료 시 Mock)
-        _exhibits = DataSyncManager.LoadedExhibits ?? MockExhibits.GetAllExhibits();
+        // 전시물 데이터 로드 (DataSyncManager 서버 데이터 사용)
+        _exhibits = DataSyncManager.LoadedExhibits ?? new Exhibit[0];
 
-        _selectedOrder = new List<int>();
+        _selectedIndices = new HashSet<int>();
         BuildExhibitCards();
         RefreshStatusBar();
         ApplyStartButtonState(false);
     }
 
     /// <summary>
-    /// 선택된 전시품 순서대로 NavRoute 를 생성해 반환합니다.
+    /// 선택된 전시품으로 최적 경로 NavRoute 를 생성해 반환합니다.
+    /// 방문 순서는 Nearest Neighbor 알고리즘으로 자동 계산합니다.
     /// 미선택 시 null 반환.
     /// UIManager.OnStartUserNavigationClicked() 에서 호출합니다.
     /// </summary>
     public NavRoute GetUserRoute()
     {
-        if (_selectedOrder == null || _selectedOrder.Count == 0) return null;
+        if (_selectedIndices == null || _selectedIndices.Count == 0) return null;
 
-        var selected = new Exhibit[_selectedOrder.Count];
-        for (int i = 0; i < _selectedOrder.Count; i++)
-            selected[i] = _exhibits[_selectedOrder[i]];
+        // 선택된 전시품 배열 구성 (순서 무관 — CreateUserRoute 내부에서 최적화)
+        var selected = new Exhibit[_selectedIndices.Count];
+        int idx = 0;
+        foreach (int i in _selectedIndices)
+            selected[idx++] = _exhibits[i];
 
         return MockExhibits.CreateUserRoute(selected);
     }
@@ -187,39 +190,37 @@ public class RouteSelectUserController : MonoBehaviour
 
     private void OnCardClicked(int index)
     {
-        if (_selectedOrder.Contains(index))
+        if (_selectedIndices.Contains(index))
         {
             // 이미 선택된 카드: 선택 해제
-            _selectedOrder.Remove(index);
+            _selectedIndices.Remove(index);
             _cards[index].RemoveFromClassList("exhibit-card--selected");
-            UpdateBadge(index, 0); // 뱃지 초기화
+            UpdateBadge(index, false);
         }
         else
         {
             // 미선택 카드: 선택 추가
-            _selectedOrder.Add(index);
+            _selectedIndices.Add(index);
             _cards[index].AddToClassList("exhibit-card--selected");
-            UpdateBadge(index, _selectedOrder.Count);
+            UpdateBadge(index, true);
         }
 
-        // 모든 카드의 순번 뱃지를 현재 선택 순서에 맞게 재갱신
-        RefreshAllBadges();
         RefreshStatusBar();
-        ApplyStartButtonState(_selectedOrder.Count > 0);
+        ApplyStartButtonState(_selectedIndices.Count > 0);
 
         Debug.Log($"RouteSelectUserController: 전시품 선택 변경 [{_exhibits[index].name}] " +
-                  $"총 {_selectedOrder.Count}개 선택");
+                  $"총 {_selectedIndices.Count}개 선택");
     }
 
     private void OnResetClicked()
     {
-        _selectedOrder.Clear();
+        _selectedIndices.Clear();
         if (_cards == null) return;
 
         for (int i = 0; i < _cards.Length; i++)
         {
             _cards[i]?.RemoveFromClassList("exhibit-card--selected");
-            UpdateBadge(i, 0);
+            UpdateBadge(i, false);
         }
 
         RefreshStatusBar();
@@ -231,20 +232,19 @@ public class RouteSelectUserController : MonoBehaviour
     {
         if (_exhibits == null || _cards == null) return;
 
-        // 아직 선택되지 않은 전시품을 인덱스 순서대로 추가
         for (int i = 0; i < _exhibits.Length; i++)
         {
-            if (!_selectedOrder.Contains(i))
+            if (!_selectedIndices.Contains(i))
             {
-                _selectedOrder.Add(i);
+                _selectedIndices.Add(i);
                 _cards[i]?.AddToClassList("exhibit-card--selected");
+                UpdateBadge(i, true);
             }
         }
 
-        RefreshAllBadges();
         RefreshStatusBar();
-        ApplyStartButtonState(_selectedOrder.Count > 0);
-        Debug.Log($"RouteSelectUserController: 전체 선택 → {_selectedOrder.Count}개");
+        ApplyStartButtonState(_selectedIndices.Count > 0);
+        Debug.Log($"RouteSelectUserController: 전체 선택 → {_selectedIndices.Count}개");
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -252,39 +252,22 @@ public class RouteSelectUserController : MonoBehaviour
     // ════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// 모든 카드의 순번 뱃지를 현재 _selectedOrder 에 맞게 갱신합니다.
+    /// 카드 뱃지 활성화 여부를 설정합니다. 선택 시 활성(체크), 미선택 시 비활성.
     /// </summary>
-    private void RefreshAllBadges()
-    {
-        if (_cards == null) return;
-
-        for (int i = 0; i < _cards.Length; i++)
-        {
-            int order = _selectedOrder.IndexOf(i); // -1 이면 미선택
-            UpdateBadge(i, order >= 0 ? order + 1 : 0);
-        }
-    }
-
-    /// <summary>
-    /// 카드 뱃지 숫자를 설정합니다. order=0 이면 숨김 상태로 초기화합니다.
-    /// </summary>
-    private void UpdateBadge(int cardIndex, int order)
+    private void UpdateBadge(int cardIndex, bool selected)
     {
         if (_cards == null || cardIndex >= _cards.Length || _cards[cardIndex] == null) return;
 
-        var badge      = _cards[cardIndex].Q<VisualElement>(className: "exhibit-card-badge");
-        var badgeLabel = badge?.Q<Label>(className: "exhibit-badge-label");
-        var checkMark  = _cards[cardIndex].Q<Label>("check-mark");
+        var badge     = _cards[cardIndex].Q<VisualElement>(className: "exhibit-card-badge");
+        var checkMark = _cards[cardIndex].Q<Label>("check-mark");
 
-        if (order > 0)
+        if (selected)
         {
-            if (badgeLabel != null) badgeLabel.text = order.ToString();
             badge?.AddToClassList("exhibit-card-badge--active");
             checkMark?.RemoveFromClassList("exhibit-check-mark--hidden");
         }
         else
         {
-            if (badgeLabel != null) badgeLabel.text = "";
             badge?.RemoveFromClassList("exhibit-card-badge--active");
             checkMark?.AddToClassList("exhibit-check-mark--hidden");
         }
@@ -294,11 +277,11 @@ public class RouteSelectUserController : MonoBehaviour
     {
         if (_labelCount == null) return;
 
-        int count = _selectedOrder?.Count ?? 0;
+        int count = _selectedIndices?.Count ?? 0;
         if (count == 0)
-            _labelCount.text = "방문할 전시품을 순서대로 선택하세요";
+            _labelCount.text = "방문할 전시품을 선택하세요 (자동 최적 경로 안내)";
         else
-            _labelCount.text = $"{count}개 선택됨  (탭하면 순서 변경 가능)";
+            _labelCount.text = $"{count}개 선택됨  —  최적 경로로 안내합니다";
     }
 
     private void ApplyStartButtonState(bool enabled)

@@ -1,6 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { AdminGuard } from '../auth/guards/admin.guard';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { CreateSurveyDto } from './dto/create-survey.dto';
 import { SurveyService } from './survey.service';
 
@@ -14,7 +12,6 @@ export class SurveyController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, AdminGuard)
   findAll() {
     return this.surveyService.findAll();
   }

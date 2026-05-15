@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const serverHost = "http://localhost:3000";
-const apiUrl = `${serverHost}/api/display`;
+// 개발: package.json proxy가 /api 요청을 NestJS(3000)로 전달
+// 프로덕션: NestJS가 React 빌드 + API를 하나의 서버로 서빙
+const apiUrl = `/api/artworks`;
 
 function Content() {
     // [수정] 위치 정보 필드(ar_marker_id, pos_x, pos_y, floor_info) 추가
@@ -13,6 +14,7 @@ function Content() {
         ar_marker_id: "",
         pos_x: "",
         pos_z: "",
+        map_index: "0",
         floor_info: "Museum 1F",
     });
 
@@ -26,8 +28,9 @@ function Content() {
         try {
             const response = await fetch(apiUrl);
             if (response.ok) {
-                const data = await response.json();
-                setItems(data);
+                // NestJS ResponseInterceptor가 { success, data } 형태로 래핑
+                const result = await response.json();
+                setItems(result.data);
             }
         } catch (error) {
             console.error("목록 불러오기 실패:", error);
@@ -38,7 +41,6 @@ function Content() {
         fetchItems();
     }, []);
 
-    // [수정] 선택 시 위치 정보 데이터도 폼에 채워지도록 수정
     const handleSelectItem = (item) => {
         setSelectedItemId(item.id);
         setFormData({
@@ -48,11 +50,13 @@ function Content() {
             ar_marker_id: item.ar_marker_id || "",
             pos_x: item.pos_x || "",
             pos_z: item.pos_z || "",
+            map_index: String(item.map_index ?? 0),
             floor_info: item.floor_info || "Museum 1F",
         });
 
-        if (item.image_path) {
-            setPreviewImage(`${serverHost}${item.image_path}`);
+        // image_url은 Supabase Storage 전체 URL
+        if (item.image_url) {
+            setPreviewImage(item.image_url);
         } else {
             setPreviewImage("/images/nophoto.png");
         }
@@ -88,6 +92,7 @@ function Content() {
             ar_marker_id: "",
             pos_x: "",
             pos_z: "",
+            map_index: "0",
             floor_info: "Museum 1F",
         });
         setPreviewImage("/images/nophoto.png");
@@ -117,7 +122,6 @@ function Content() {
 
     const handleSave = async () => {
         const data = new FormData();
-        // [수정] 모든 필드를 FormData에 추가
         Object.keys(formData).forEach((key) => {
             data.append(key, formData[key]);
         });
@@ -126,18 +130,23 @@ function Content() {
             data.append("image", selectedFile);
         }
 
+        // 기존 항목 선택 시 PATCH(수정), 미선택 시 POST(신규 등록)
+        const isUpdate = Boolean(selectedItemId);
+        const url = isUpdate ? `${apiUrl}/${selectedItemId}` : apiUrl;
+        const method = isUpdate ? "PATCH" : "POST";
+
         try {
-            const response = await fetch(apiUrl, {
-                method: "POST",
+            const response = await fetch(url, {
+                method,
                 body: data,
             });
 
             if (response.ok) {
-                alert("성공적으로 저장되었습니다!");
+                alert(isUpdate ? "수정되었습니다!" : "성공적으로 저장되었습니다!");
                 fetchItems();
-                resetForm(); // 모든 필드 리셋
+                resetForm();
             } else {
-                alert("저장 실패");
+                alert(isUpdate ? "수정 실패" : "저장 실패");
             }
         } catch (error) {
             console.error("에러 발생:", error);
@@ -222,11 +231,7 @@ function Content() {
                                 <img
                                     className="w-full h-full object-cover opacity-80"
                                     alt="thumbnail"
-                                    src={
-                                        item.image_path
-                                            ? `${serverHost}${item.image_path}`
-                                            : "https://via.placeholder.com/150"
-                                    }
+                                    src={item.image_url || "/images/nophoto.png"}
                                 />
                                 <div className="absolute inset-0 bg-black/10"></div>
                             </div>
@@ -343,6 +348,18 @@ function Content() {
                                         type="text"
                                         placeholder="Z축"
                                     />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-1">MAP</label>
+                                    <select
+                                        name="map_index"
+                                        value={formData.map_index}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-2 bg-[#151a25] border border-slate-700 rounded-lg text-sm text-white appearance-none outline-none"
+                                    >
+                                        <option value="0">Map A (145962)</option>
+                                        <option value="1">Map B (145963)</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-400 mb-1">FLOOR</label>

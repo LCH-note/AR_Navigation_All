@@ -40,6 +40,13 @@
             <!-- 나침반 방위 표시 (ARMapScreenController가 Input.compass로 업데이트) -->
             <ui:Label text="N" name="label-compass" class="ar-compass-label" />
 
+            <!--
+                도슨트 토글 버튼: 전시품 도슨트 패널 전체 표시/숨김 전환
+                UIManager 에서 btn-toggle-docent 를 쿼리해 클릭 이벤트를 연결합니다.
+                초기 텍스트 "도슨트 ON" — 도슨트 비표시 상태를 나타냄
+            -->
+            <ui:Button text="도슨트 ON" name="btn-toggle-docent" class="ar-docent-button" />
+
         </ui:VisualElement>
         <!-- ── 상단 HUD 끝 ────────────────────────────────────── -->
 
@@ -93,13 +100,18 @@
         <!-- ── 하단 HUD (항상 표시) ─────────────────────────────── -->
         <!--
             유도선 토글 버튼: 경로 바닥 선을 보이게/숨기게 전환합니다.
-            UIManager 에서 btn-toggle-path 를 쿼리해 클릭 이벤트를 연결합니다.
+            화살표 토글 버튼: 3D 화살표 모델을 보이게/숨기게 전환합니다.
+            UIManager 에서 btn-toggle-path / btn-toggle-arrow 를 쿼리해 클릭 이벤트를 연결합니다.
         -->
         <ui:VisualElement name="hud-bottom" class="ar-hud ar-hud-bottom">
             <ui:Button
                 text="경로선 숨기기"
                 name="btn-toggle-path"
                 class="ar-toggle-path-button" />
+            <ui:Button
+                text="화살표 숨기기"
+                name="btn-toggle-arrow"
+                class="ar-toggle-arrow-button" />
         </ui:VisualElement>
         <!-- ── 하단 HUD 끝 ────────────────────────────────────── -->
 

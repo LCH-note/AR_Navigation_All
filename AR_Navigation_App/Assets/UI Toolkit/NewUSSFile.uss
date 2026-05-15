@@ -747,3 +747,84 @@
 .review-text-field--placeholder {
     color: rgba(255, 255, 255, 0.38);
 }
+
+
+/* ══════════════════════════════════════════════
+   전체 지도 화면 (MapScreen) — 플로어별 평면도
+══════════════════════════════════════════════ */
+
+/* 플로어 탭 버튼 가로 배열 컨테이너 */
+.floor-tab-bar {
+    flex-direction: row;
+    height: 96px;
+    background-color: rgb(12, 20, 38);
+    border-bottom-width: 1px;
+    border-color: rgba(41, 69, 159, 0.30);
+    padding-left: 20px;
+    padding-right: 20px;
+    align-items: center;
+}
+
+/* 개별 플로어 탭 버튼 */
+.floor-tab {
+    flex-grow: 1;
+    height: 66px;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.50);
+    font-size: 28px;
+    -unity-font-style: bold;
+    border-radius: 12px;
+    border-width: 0;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.floor-tab:hover {
+    background-color: rgba(41, 69, 159, 0.18);
+    color: rgba(255, 255, 255, 0.80);
+}
+
+.floor-tab:active {
+    background-color: rgba(41, 69, 159, 0.30);
+    scale: 0.96;
+}
+
+/* 선택된 탭: 딥 블루 배경 + 흰색 텍스트 */
+.floor-tab--active {
+    background-color: rgb(41, 69, 159);
+    color: rgb(255, 255, 255);
+}
+
+.floor-tab--active:hover {
+    background-color: rgb(50, 85, 185);
+    color: rgb(255, 255, 255);
+}
+
+/* 지도 이미지 표시 영역: 남은 공간 전체 차지 */
+.map-image-area {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(8, 14, 28);
+    padding: 24px;
+}
+
+/* 평면도 이미지: 영역 내 전체 표시, 비율 유지 (잘림 없음) */
+.map-image {
+    flex-grow: 1;
+    width: 100%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* 평면도 미등록 안내 라벨 */
+.no-map-label {
+    font-size: 26px;
+    color: rgba(255, 255, 255, 0.45);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+/* 숨김 유틸리티 클래스 */
+.hidden {
+    display: none;
+}

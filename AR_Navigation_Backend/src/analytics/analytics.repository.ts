@@ -6,20 +6,23 @@ export class AnalyticsRepository {
   constructor(private readonly supabase: SupabaseService) {}
 
   async getAgeGroupCounts(): Promise<Record<string, number>> {
+    // 앱에서 수집된 visitors 테이블 기준 연령대 집계
     const { data, error } = await this.supabase.db
-      .from('surveys')
+      .from('visitors')
       .select('age_group');
     if (error) throw error;
 
     return (data ?? []).reduce<Record<string, number>>((acc, row) => {
+      if (!row.age_group) return acc;
       acc[row.age_group] = (acc[row.age_group] ?? 0) + 1;
       return acc;
     }, {});
   }
 
   async getTotalUserCount(): Promise<number> {
+    // 앱에서 수집된 visitors 테이블 총 방문자 수
     const { count, error } = await this.supabase.db
-      .from('surveys')
+      .from('visitors')
       .select('*', { count: 'exact', head: true });
     if (error) throw error;
     return count ?? 0;

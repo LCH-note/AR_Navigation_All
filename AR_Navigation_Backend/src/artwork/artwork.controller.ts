@@ -6,10 +6,10 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { AdminGuard } from '../auth/guards/admin.guard';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ArtworkService } from './artwork.service';
 import { CreateArtworkDto } from './dto/create-artwork.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
@@ -28,20 +28,29 @@ export class ArtworkController {
     return this.artworkService.findOne(id);
   }
 
+  // 웹 대시보드에서 인증 없이 전시품 등록 가능 (multipart/form-data 지원)
   @Post()
-  @UseGuards(JwtAuthGuard, AdminGuard)
-  create(@Body() dto: CreateArtworkDto) {
-    return this.artworkService.create(dto);
+  @UseInterceptors(FileInterceptor('image'))
+  create(
+    @Body() dto: CreateArtworkDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.artworkService.create(dto, file);
   }
 
+  // 웹 대시보드에서 인증 없이 전시품 수정 가능 (JWT 구현 후 가드 복원)
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, AdminGuard)
-  update(@Param('id') id: string, @Body() dto: UpdateArtworkDto) {
-    return this.artworkService.update(id, dto);
+  @UseInterceptors(FileInterceptor('image'))
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateArtworkDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.artworkService.update(id, dto, file);
   }
 
+  // 웹 대시보드에서 인증 없이 삭제 가능
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, AdminGuard)
   remove(@Param('id') id: string) {
     return this.artworkService.remove(id);
   }

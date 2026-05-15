@@ -60,6 +60,8 @@ Assets/
  MobileARTemplateAssets/UI/Scripts/CutoutMaskUI.cs
  Navigation/
   ARNavigationController.cs
+  DocentManager.cs
+  FloorMapController.cs
   NavRouteData.cs
   RouteSelectController.cs
   RouteSelectUserController.cs
@@ -308,6 +310,10 @@ Library/ScriptAssemblies/
  Unity.Mobile.AndroidLogcat.Editor.dll
  Unity.Performance.Profile-Analyzer.Editor.dll
  Unity.PlasticSCM.Editor.dll
+ Unity.ProBuilder.AddOns.Editor.dll
+ Unity.ProBuilder.AssetIdRemapUtility.dll
+ Unity.ProBuilder.dll
+ Unity.ProBuilder.Editor.dll
  Unity.RenderPipeline.Universal.ShaderLibrary.dll
  Unity.RenderPipelines.Core.Editor.dll
  Unity.RenderPipelines.Core.Runtime.dll

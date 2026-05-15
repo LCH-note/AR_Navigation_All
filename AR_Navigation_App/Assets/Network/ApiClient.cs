@@ -27,8 +27,8 @@ public class ApiClient : MonoBehaviour
     public static ApiClient Instance { get; private set; }
 
     // ── Inspector 설정 ───────────────────────────────────────────────
-    [Header("서버 기본 URL (끝 슬래시 없이)")]
-    [SerializeField] private string baseUrl = "http://localhost:3000";
+    [Header("서버 기본 URL (끝 슬래시 없이, /api 포함)")]
+    [SerializeField] private string baseUrl = "http://localhost:3000/api";
 
     [Header("일반 요청 타임아웃 (초)")]
     [SerializeField] private int timeoutSeconds = 15;
