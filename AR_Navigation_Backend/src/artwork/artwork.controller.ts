@@ -13,6 +13,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { multerImageOptions } from '../common/utils/upload.utils';
 import { ArtworkService } from './artwork.service';
 import { CreateArtworkDto } from './dto/create-artwork.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
@@ -33,7 +34,8 @@ export class ArtworkController {
 
   @Post()
   @UseGuards(JwtAuthGuard, AdminGuard)
-  @UseInterceptors(FileInterceptor('image'))
+  // MIME Type(jpeg/png/svg) 및 최대 5MB 검증
+  @UseInterceptors(FileInterceptor('image', multerImageOptions))
   create(
     @Body() dto: CreateArtworkDto,
     @UploadedFile() file?: Express.Multer.File,
@@ -43,7 +45,7 @@ export class ArtworkController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, AdminGuard)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image', multerImageOptions))
   update(
     @Param('id') id: string,
     @Body() dto: UpdateArtworkDto,

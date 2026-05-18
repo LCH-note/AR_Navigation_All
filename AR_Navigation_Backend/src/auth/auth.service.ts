@@ -11,7 +11,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(dto: LoginDto): Promise<{ accessToken: string }> {
+  // 로그인 성공 시 JWT 문자열 반환 — 컨트롤러에서 httpOnly 쿠키로 설정
+  async login(dto: LoginDto): Promise<string> {
     const admin = await this.authRepository.findByUsername(dto.username);
     if (!admin) throw new UnauthorizedException('Invalid credentials');
 
@@ -19,6 +20,6 @@ export class AuthService {
     if (!isValid) throw new UnauthorizedException('Invalid credentials');
 
     const payload = { sub: admin.id, username: admin.username, role: admin.role };
-    return { accessToken: this.jwtService.sign(payload) };
+    return this.jwtService.sign(payload);
   }
 }

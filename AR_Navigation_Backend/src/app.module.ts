@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -36,6 +37,8 @@ if (fs.existsSync(buildPath)) {
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Rate Limiting: 1분(60_000ms)당 IP당 최대 30회
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 30 }]),
     ...staticModules,
     SupabaseModule,
     AuthModule,

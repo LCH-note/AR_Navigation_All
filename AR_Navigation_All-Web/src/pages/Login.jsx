@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { setToken } from '../utils/auth';
+import { setLoginFlag } from '../utils/auth';
 
 export default function Login() {
     const [username, setUsername] = useState('');
@@ -26,16 +26,16 @@ export default function Login() {
         try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
+                credentials: 'include', // httpOnly 쿠키 수신을 위해 필수
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
             });
 
             if (res.ok) {
                 const data = await res.json();
-                // NestJS ResponseInterceptor 래핑: { success, data: { accessToken } }
-                const token = data.data?.accessToken ?? data.accessToken;
-                if (token) {
-                    setToken(token);
+                // JWT는 백엔드에서 httpOnly 쿠키로 설정됨 — 로그인 플래그만 저장
+                if (data.success) {
+                    setLoginFlag();
                     navigate(from, { replace: true });
                 } else {
                     setError('로그인에 실패했습니다. 다시 시도해주세요.');

@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { CreateRouteDto } from './dto/create-route.dto';
+import { RouteResponseDto } from './dto/route-response.dto';
 import { RoutesRepository } from './routes.repository';
 
 @Injectable()
 export class RoutesService {
   constructor(private readonly routesRepository: RoutesRepository) {}
 
-  // Unity 앱 형식에 맞게 snake_case → camelCase 변환 후 반환
-  async findAll() {
+  // Unity 앱 형식에 맞게 snake_case → camelCase 변환, RouteResponseDto로 직렬화 (DB 내부 필드 제외)
+  async findAll(): Promise<RouteResponseDto[]> {
     const rows = await this.routesRepository.findAll();
-    return rows.map((r) => ({
+    const mapped = rows.map((r) => ({
       id:                r.id,
       routeId:           r.route_id,
       routeName:         r.route_name,
@@ -19,6 +21,7 @@ export class RoutesService {
       estimatedTime:     r.estimated_time ?? '',
       waypoints:         r.waypoints ?? [],
     }));
+    return plainToInstance(RouteResponseDto, mapped, { excludeExtraneousValues: true });
   }
 
   create(dto: CreateRouteDto) {

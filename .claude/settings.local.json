@@ -61,7 +61,9 @@
       "Bash(dir C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_All-Web\\\\src\\\\utils *)",
       "mcp__UnityMCP__validate_script",
       "Bash(dir C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_App\\\\Assets\\\\UI Toolkit\\\\Fonts *)",
-      "PowerShell(Get-Item *)"
+      "PowerShell(Get-Item *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_Backend\\\\src\" -Recurse22)",
+      "Bash(npm install *)"
     ]
   }
 }

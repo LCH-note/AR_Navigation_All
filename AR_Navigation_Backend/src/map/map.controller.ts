@@ -7,9 +7,13 @@ import {
   Patch,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AdminGuard } from '../auth/guards/admin.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { multerMapFileOptions } from '../common/utils/upload.utils';
 import { CreateMapDto } from './dto/create-map.dto';
 import { UpdateMapDto } from './dto/update-map.dto';
 import { MapService } from './map.service';
@@ -28,27 +32,28 @@ export class MapController {
     return this.mapService.findOne(id);
   }
 
-  // 가드 제거: 웹 대시보드에서 인증 없이 호출 (artworks와 동일한 이유)
-  // 추후 웹 대시보드에 JWT 로그인 구현 시 가드 복원
   @Post()
+  @UseGuards(JwtAuthGuard, AdminGuard)
   create(@Body() dto: CreateMapDto) {
     return this.mapService.create(dto);
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   update(@Param('id') id: string, @Body() dto: UpdateMapDto) {
     return this.mapService.update(id, dto);
   }
 
-  // 가드 제거: 웹 대시보드에서 인증 없이 호출
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   remove(@Param('id') id: string) {
     return this.mapService.remove(id);
   }
 
-  // 가드 제거: 웹 대시보드에서 인증 없이 호출
+  // MIME Type 및 최대 5MB 검증 — Immersal 맵 바이너리와 이미지 모두 허용
   @Post(':id/upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseInterceptors(FileInterceptor('file', multerMapFileOptions))
   uploadFile(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
