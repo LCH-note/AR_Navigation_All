@@ -35,6 +35,7 @@ function Index() {
 
     useEffect(() => {
         fetchReviews();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // --- 리뷰 삭제 핸들러 ---
