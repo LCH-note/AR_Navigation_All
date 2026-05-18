@@ -1817,7 +1817,7 @@ MonoBehaviour:
   panelHeight: 0.42
   panelHeightOffset: 1.4
   docentFontTTF: {fileID: 12800000, guid: 5ca4126a42129fc4d9d6247026178dc5, type: 3}
-  docentFont: {fileID: 11400000, guid: 20943312a99aa404693217f4d826e44f, type: 2}
+  docentFont: {fileID: 0}
 --- !u!4 &1090392714
 Transform:
   m_ObjectHideFlags: 0
@@ -2174,6 +2174,10 @@ MonoBehaviour:
   pathLineWidth: 0.08
   pathLineHeightOffset: 0.01
   wallClearanceDistance: 0.3
+  pathLineSimplifyEpsilon: 0.35
+  pathLineSmoothSubdivisions: 6
+  pathRelaxIterations: 10
+  pathRelaxStrength: 0.4
   pathLineFlowSpeed: 1.5
   pathLineArrowFrequency: 2
   pathLineGlowIntensity: 1.3
@@ -26314,7 +26318,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc432a6b3a904d2b833b6cd651c5d47b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseUrl: http://localhost:3000/api
+  baseUrl: https://ar-navigation-back.onrender.com/api
   timeoutSeconds: 15
   downloadTimeoutSeconds: 60
 --- !u!4 &1815361770

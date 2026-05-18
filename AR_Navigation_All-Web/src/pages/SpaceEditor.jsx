@@ -103,7 +103,6 @@ function SpaceEditor() {
     const [canvasSize, setCanvasSize] = useState({ width: 800, height: 560 });
 
     const canvasRef = useRef(null);
-    const imageLoadError = useRef({});
 
     // 전시품 목록 로드
     const fetchArtworks = async () => {
