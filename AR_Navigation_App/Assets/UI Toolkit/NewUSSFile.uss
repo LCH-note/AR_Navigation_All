@@ -734,9 +734,14 @@
     padding-left: 20px;
     padding-right: 20px;
     font-size: 26px;
-    color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
     -unity-text-align: upper-left;
     white-space: normal;
+}
+
+/* Unity TextField 내부 입력 텍스트 요소 — 검정색 명시 */
+.review-text-field > .unity-base-text-field__input {
+    color: rgb(0, 0, 0);
 }
 
 .review-text-field:focus {

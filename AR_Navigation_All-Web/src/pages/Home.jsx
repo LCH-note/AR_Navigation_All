@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { removeToken } from '../utils/auth';
 
 function Index() {
+    const navigate = useNavigate();
     const [currentFloor, setCurrentFloor] = useState(1);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
@@ -10,6 +12,11 @@ function Index() {
     const [userCount, setUserCount] = useState(null);
     const [avgRating, setAvgRating] = useState(null);
     const [ageGroups, setAgeGroups] = useState([]);
+
+    const handleLogout = () => {
+        removeToken();
+        navigate('/login', { replace: true });
+    };
 
     const floorImages = {
         1: '/images/floor_1.jpg',
@@ -144,8 +151,17 @@ function Index() {
                     </div>
                 </div>
 
-                {/* 사이드바 하단 실시간 시계 컴포넌트 마운트 */}
-                <SidebarClock />
+                {/* 사이드바 하단: 로그아웃 버튼 + 시계 */}
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-red-900/20 hover:text-red-400 transition-colors w-full text-left"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>logout</span>
+                        <span className="text-sm font-medium">로그아웃</span>
+                    </button>
+                    <SidebarClock />
+                </div>
             </nav>
 
             <main className="flex-1 flex flex-col h-full bg-[#101622] overflow-y-auto relative scrollbar-hide">

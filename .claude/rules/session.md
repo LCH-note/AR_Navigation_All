@@ -1,6 +1,6 @@
 # 앞으로 해결해야 할 과제
 
-> 업데이트: 2026-05-16 (지도화면 작업)  
+> 업데이트: 2026-05-17 (관리자 인증 흐름 구현 완료)  
 > 현재 브랜치: `merge`
 
 ---
@@ -16,14 +16,9 @@
 
 ## 우선순위 중간
 
-### [WEB] 관리자 인증 흐름 구현
-- **현황**: 웹 대시보드에서 인증 미구현 상태. `POST /api/artworks`, `DELETE /api/artworks/:id`, `GET /api/reviews` 가드가 임시 제거됨
-- **과제**: NestJS JWT 로그인 → 토큰 저장 → 요청 헤더 전송 흐름 구현 후 가드 복원
-- **복원 대상 가드**: `POST /artworks`, `DELETE /artworks/:id`, `GET /reviews`, `DELETE /reviews/:id`
-- **주의**: `DELETE /api/reviews/:id`에 리뷰 삭제 버튼이 추가됐으나 JWT 인증 구현 전까지는 403 반환됨
-
 ### [APP] 전시품 상세 도슨트 기능
 - **현황**: `DocentManager.cs` 구현 완료. AR 화면에서 "도슨트 ON/OFF" 버튼으로 전체 전시품 패널 일괄 표시/숨김. 텍스트 렌더링 버그 수정 완료 (아래 완료 항목 참고).
+- **좌표 문제 해결 완료**: 실기기에서 `debugShowMapCoords = true`로 측정한 Immersal 맵 로컬 좌표를 DB에 입력 완료. 실기기 검증 대기 중.
 - **잔여 과제**: 현재 구현은 전체 패널 동시 토글 방식. 원래 기획대로 웨이포인트 도달 시 해당 전시품 패널만 자동 표시하려면 `ARNavigationController.CheckWaypointReached()` → `DocentManager.ShowPanelForExhibit(exhibitId)` 연동 필요
 - **주의**: `MalgunGothic SDF.asset`은 UIToolkit 전용 폰트로 `TMP_FontAsset` 필드에 연결 불가. `Docent Font TTF` 필드에 `MalgunGothic.ttf` 연결 유지
 
@@ -120,7 +115,6 @@
     - 실패 시 "리뷰 등록에 실패했습니다. 다시 시도해주세요." 표시
     - `review-status-label` UXML 요소 없을 때 null 안전 처리
   - `User.jsx`: 리뷰 목록에 삭제 버튼(휴지통 아이콘) 추가 + `DELETE /api/reviews/:id` 연동
-    - JWT 인증 구현 전까지는 403 반환 (인증 구현 후 정상 동작)
 - [x] 경로 유도선 버튼-상태 불일치 수정 및 높이 조정
   - `ARNavigationController.cs`: `CreatePathLine()`에서 `_pathLineVisible = false` 하드코딩 — `pathLineVisibleOnStart` Inspector 값과 무관하게 항상 숨김으로 시작
   - Inspector `pathLineHeightOffset`: `0.05` → `0.01` (바닥 바로 위)로 변경 후 씬 저장
@@ -200,3 +194,68 @@
   - `SpaceRoute.jsx`: 경로 삭제 기능 구현 (DELETE 요청 + 확인 다이얼로그 + 로딩 표시)
   - `SpaceMap.jsx`: MapCard에 floor 뱃지 추가 (amber 색상) + 미지정 안내 표시
   - **잔여**: Supabase `maps` 테이블에 `floor TEXT` 컬럼 추가 SQL 실행 필요 (session.md 참고)
+- [x] MapSystem ↔ ARNavigationController 실제 연동 완료
+  - **목적**: MapSystem 시뮬레이션 코드를 실제 AR 네비게이션에 통합 — 정확도 피드백 제공
+  - `HybridLocationTracker.cs` 수정
+    - `CurrentAccuracy` 공개 프로퍼티 추가 (`currentAccuracy` SerializeField 읽기 노출)
+    - `UpdateFromExternalPosition(Vector2 pos2D)` 공개 메서드 추가 — `ImmersalLocationConverter` 없이 외부에서 위치 직접 전달 가능
+  - `ARNavigationController.cs` 수정
+    - `[Header("위치 정확도 추적 (MapSystem 연동)")]` 섹션 추가
+    - `[SerializeField] private UnifiedCoordinateSystem coordinateSystem` 필드 추가
+    - `[SerializeField] private HybridLocationTracker locationTracker` 필드 추가
+    - `_currentAccuracy` 내부 상태 필드 추가
+    - `CurrentAccuracy` / `CurrentAccuracyColor` 공개 프로퍼티 추가 (UI 마커 색상 연동 가능)
+    - `Update()` 마지막에 `UpdateLocationAccuracy()` 조건부 호출 추가
+    - `UpdateLocationAccuracy()` 메서드 구현:
+      - 현재 웨이포인트의 mapIndex로 GetXRSpace() 선택
+      - `space.InverseTransformPoint(camPos)` → Immersal 로컬 좌표
+      - `coordinateSystem.LocalToUnified(mapIndex+1, localPos)` → 통합 좌표
+      - `locationTracker.UpdateFromExternalPosition(pos2D)` 전달 → 정확도 판단
+  - **씬 설정** (`SampleScene.unity`, `ARNavigationController` 오브젝트)
+    - `UnifiedCoordinateSystem` 컴포넌트 추가 (`enableDebugLog=false`)
+    - `HybridLocationTracker` 컴포넌트 추가 (`enableDebugLog=false`)
+    - ARNavigationController Inspector: `coordinateSystem`, `locationTracker` 참조 연결 완료
+  - **좌표 흐름**: 카메라 월드 → XRSpace 역변환 → 통합 좌표(맵B는 X+20) → 2D(x,z) → 스캔영역 판정
+  - **mapID 규칙**: UnifiedCoordinateSystem은 1-based (mapIndex 0→ID 1, 1→ID 2)
+  - **스캔 영역 기본값**: 전시실 (5,5)~(35,25) / 로비 (0,0)~(5,40) / 복도 (35,0)~(50,40) — 현장 실측 후 Inspector에서 조정 필요
+- [x] 도슨트 위치 좌표 실기기 측정 도구 추가 (`ARNavigationController.cs`)
+  - **배경**: 에디터에서 측정한 AR Space 2 로컬 좌표는 Immersal이 실기기에서 재설정하는 XRSpace Transform과 달라 도슨트 위치 불일치 발생. Immersal 맵 로컬 좌표는 앱 재실행 간 불변이므로 실기기에서 한 번만 측정하면 됨.
+  - `debugShowMapCoords` bool Inspector 필드 추가 (Header: "디버그 좌표 측정")
+  - `UpdateDebugMapCoords()` 메서드: 0.2초마다 카메라 위치를 맵A/맵B XRSpace 기준 로컬 좌표로 `InverseTransformPoint` 변환 후 `_debugCoordsDisplay` 문자열 갱신
+  - `OnGUI()` 메서드: 화면 좌하단에 반투명 검정 박스로 좌표 실시간 표시
+  - `MakeTex()` 헬퍼: OnGUI 배경용 단색 Texture2D 생성
+  - 출력 형식: `[맵A] pos_x=X  pos_z=Z  (y=Y)  map_index=0` / `[맵B] pos_x=X  pos_z=Z  (y=Y)  map_index=1`
+  - 측정 완료 후 `debugShowMapCoords = false` 체크 해제 필수
+- [x] 관리자 인증 흐름 구현 (웹 대시보드 JWT 로그인)
+  - `Login.jsx` 신규 생성 — 아이디/비밀번호 입력 → `POST /api/auth/login` → `accessToken` localStorage 저장
+  - `utils/auth.js` 신규 생성 — `getToken`, `setToken`, `removeToken`, `isAuthenticated`, `authFetch` 헬퍼
+  - `App.jsx` `PrivateRoute` 추가 — 미인증 시 `/login`으로 리다이렉트, 복귀 경로 state 보존
+  - 백엔드 가드 복원: `POST/PATCH/DELETE /api/artworks`, `GET/DELETE /api/reviews` → `JwtAuthGuard + AdminGuard`
+    - `POST /api/reviews`는 Unity 앱 전용이므로 가드 없음 유지
+  - `Content.jsx`, `User.jsx`: 인증 필요 요청을 `authFetch`로 교체, 401 수신 시 자동 로그아웃 + 로그인 페이지 리다이렉트
+  - `auth.module.ts` JWT 만료 버그 수정: `config.get<number>()` → `Number(config.get())` — 환경변수 문자열이 ms로 해석되어 86초 만료되던 문제 해결
+- [x] AR 맵 네비게이션 MapSystem 서브시스템 구현 (`Assets/Navigation/MapSystem/`)
+  - **목적**: 멀티맵 통합 좌표계 기반 크로스맵 네비게이션·2D 지도 표시·하이브리드 위치 추적 기초 시스템
+  - 데이터 구조 클래스 5종 신규 생성 (`[System.Serializable]`, Inspector 편집 가능)
+    - `MapSettings.cs` — 맵 물리 크기(50×40m), Canvas 표시 영역(800×600px)
+    - `Anchor.cs` — 맵 기준점 (mapID, unifiedPosition, name)
+    - `ScannedRegion.cs` — 스캔/미스캔 영역 바운딩 박스 + `Contains(Vector2)` 포함
+    - `DocentPanel.cs` — 도슨트 패널 위치(Anchor 상대 좌표) + 설명 텍스트
+    - `NavigationWaypoint.cs` — 네비게이션 경유점 (기존 `NavWaypoint`와 별도, Anchor 상대 좌표 기반)
+  - `UnifiedCoordinateSystem.cs` — 멀티맵 통합 좌표계 MonoBehaviour
+    - `LocalToUnified(mapID, localPos)` / `UnifiedToLocal(mapID, unifiedPos)` / `LocalTo2D(unifiedPos)`
+    - 기본 앵커: Anchor1=(0,0,0), Anchor2=(20,0,0); 앵커 추가·조회·범위 검증 지원
+  - `ImmersalLocationConverter.cs` — Immersal 위치 → 통합 좌표 변환
+    - 시뮬레이션 모드: 맵1(3,0,7) ↔ 맵2(4,0,6) 5초 주기 전환, 맵 전환 시 HasValidPose 일시 false
+    - 실기기 연동 시 SDK 코드 주석 처리 활성화로 교체 가능
+  - `NavigationPathManager.cs` — 크로스맵 경로 관리
+    - 맵1 경로 (5,0,5)→(10,0,10), 맵2 경로 (0,0,0)→(5,0,5); `CalculateTotalDistance()` / `ValidatePath()`
+  - `CoordinateDisplay.cs` — 3D→2D→Canvas 좌표 변환
+    - `UnifiedTo2D` / `WorldToCanvasPosition` / `CanvasToWorld` 양방향 변환; `IsWithinCanvas` / `ClampToCanvas`
+  - `HybridLocationTracker.cs` — 스캔/미스캔 영역별 정확도 추적
+    - 전시실(스캔) / 로비·복도(미스캔) 3개 영역 정의; `LocationAccuracy` enum (None/Estimated/Accurate)
+    - `GetMarkerColor()`: Accurate=초록, Estimated=노랑, None=빨강
+  - `ARNavigationSystem.cs` — 전체 파이프라인 통합 시뮬레이션 (10프레임, 1초 간격)
+    - 맵 전환 중 Localization 불가 상태 별도 분기 처리; Canvas 범위 초과 시 자동 클램핑
+    - 출력 형식: `[프레임 N] ├─ Immersal 위치 … └─ 정확도`
+  - **주의**: 기존 `NavWaypoint`(Immersal 로컬 좌표)와 `NavigationWaypoint`(Anchor 상대 좌표)는 용도가 다름. 실제 씬 연동 시 빈 GameObject에 6개 컴포넌트 모두 추가 후 참조 연결 필요

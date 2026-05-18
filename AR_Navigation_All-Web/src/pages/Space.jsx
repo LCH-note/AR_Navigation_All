@@ -1,9 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { removeToken } from "../utils/auth";
 
 // 공간관리 레이아웃 컴포넌트 — 사이드바 + 서브탭 내비게이션 + Outlet(하위 페이지) 포함
 function Space() {
     const navigate = useNavigate();
+
+    const handleLogout = () => {
+        removeToken();
+        navigate('/login', { replace: true });
+    };
 
     // 마운트 시 기본 탭(지도 에디터)으로 리다이렉트
     useEffect(() => {
@@ -71,8 +77,17 @@ function Space() {
                     </div>
                 </div>
 
-                {/* 사이드바 하단 실시간 시계 */}
-                <SidebarClock />
+                {/* 사이드바 하단: 로그아웃 버튼 + 시계 */}
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-red-900/20 hover:text-red-400 transition-colors w-full text-left"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>logout</span>
+                        <span className="text-sm font-medium">로그아웃</span>
+                    </button>
+                    <SidebarClock />
+                </div>
             </nav>
 
             {/* 2. 메인 콘텐츠 영역 */}

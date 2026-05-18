@@ -42,7 +42,26 @@
       "mcp__UnityMCP__manage_editor",
       "PowerShell(Select-String -Path \"C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_App\\\\Assets\\\\Scenes\\\\SampleScene.unity\" -Pattern \"UIManager\" -Context 0,35 | Select-Object -First 1 | ForEach-Object { $_.Line; $_.Context.PostContext })",
       "PowerShell(Select-String -Path \"C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_App\\\\Assets\\\\Scenes\\\\SampleScene.unity\" -Pattern \"UIManager\" -Context 0,55 | Select-Object -First 1 | ForEach-Object { $_.Context.PostContext } | Select-Object -Skip 28)",
-      "PowerShell(Select-String -Path \"C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_App\\\\Assets\\\\Scenes\\\\SampleScene.unity\" -Pattern \"FloorMapController\" -Context 0,15 | ForEach-Object { \"Line: $\\($_.LineNumber\\)\"; $_.Line; $_.Context.PostContext })"
+      "PowerShell(Select-String -Path \"C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_App\\\\Assets\\\\Scenes\\\\SampleScene.unity\" -Pattern \"FloorMapController\" -Context 0,15 | ForEach-Object { \"Line: $\\($_.LineNumber\\)\"; $_.Line; $_.Context.PostContext })",
+      "Bash(powershell *)",
+      "mcp__UnityMCP__manage_asset",
+      "mcp__UnityMCP__batch_execute",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(npm start *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":3000 \")",
+      "Bash(findstr LISTENING)",
+      "Bash(tasklist /fi \"pid eq 1668\" /fo csv /nh)",
+      "Bash(tasklist /fi \"pid eq 29776\" /fo csv /nh)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(netstat *)",
+      "PowerShell(Stop-Process *)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_Backend\\\\src\\\\*.controller.ts\")",
+      "Bash(dir C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_All-Web\\\\src\\\\utils *)",
+      "mcp__UnityMCP__validate_script",
+      "Bash(dir C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_App\\\\Assets\\\\UI Toolkit\\\\Fonts *)",
+      "PowerShell(Get-Item *)"
     ]
   }
 }

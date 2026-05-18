@@ -1,11 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { authFetch, removeToken } from "../utils/auth";
 
 // 개발: package.json proxy가 /api 요청을 NestJS(3000)로 전달
 // 프로덕션: NestJS가 React 빌드 + API를 하나의 서버로 서빙
 const apiUrl = `/api/artworks`;
 
 function Content() {
+    const navigate = useNavigate();
+    const handleLogout = () => {
+        removeToken();
+        navigate('/login', { replace: true });
+    };
+
     // [수정] 위치 정보 필드(ar_marker_id, pos_x, pos_y, floor_info) 추가
     const [formData, setFormData] = useState({
         title: "",
@@ -67,7 +74,7 @@ function Content() {
         e.stopPropagation();
         if (window.confirm("정말 삭제하시겠습니까?")) {
             try {
-                const response = await fetch(`${apiUrl}/${id}`, {
+                const response = await authFetch(`${apiUrl}/${id}`, {
                     method: "DELETE",
                 });
                 if (response.ok) {
@@ -76,6 +83,9 @@ function Content() {
                     if (selectedItemId === id) {
                         resetForm();
                     }
+                } else if (response.status === 401) {
+                    removeToken();
+                    navigate('/login', { replace: true });
                 }
             } catch (error) {
                 console.error("삭제 중 오류:", error);
@@ -136,7 +146,7 @@ function Content() {
         const method = isUpdate ? "PATCH" : "POST";
 
         try {
-            const response = await fetch(url, {
+            const response = await authFetch(url, {
                 method,
                 body: data,
             });
@@ -145,6 +155,9 @@ function Content() {
                 alert(isUpdate ? "수정되었습니다!" : "성공적으로 저장되었습니다!");
                 fetchItems();
                 resetForm();
+            } else if (response.status === 401) {
+                removeToken();
+                navigate('/login', { replace: true });
             } else {
                 alert(isUpdate ? "수정 실패" : "저장 실패");
             }
@@ -211,8 +224,17 @@ function Content() {
                     </div>
                 </div>
 
-                {/* 사이드바 하단 실시간 시계 컴포넌트 마운트 */}
-                <SidebarClock />
+                {/* 사이드바 하단: 로그아웃 버튼 + 시계 */}
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-red-900/20 hover:text-red-400 transition-colors w-full text-left"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>logout</span>
+                        <span className="text-sm font-medium">로그아웃</span>
+                    </button>
+                    <SidebarClock />
+                </div>
             </nav>
 
             <div className="w-80 border-r border-slate-800 bg-[#151a25] flex flex-col flex-shrink-0 z-10">

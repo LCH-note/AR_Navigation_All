@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { RoutesService } from '../routes/routes.service';
 import { ArtworkRepository } from './artwork.repository';
 import { CreateArtworkDto } from './dto/create-artwork.dto';
 import { UpdateArtworkDto } from './dto/update-artwork.dto';
 
 @Injectable()
 export class ArtworkService {
-  constructor(private readonly artworkRepository: ArtworkRepository) {}
+  constructor(
+    private readonly artworkRepository: ArtworkRepository,
+    private readonly routesService: RoutesService,
+  ) {}
 
   findAll() {
     return this.artworkRepository.findAll();
@@ -31,12 +35,17 @@ export class ArtworkService {
 
   async update(id: string, dto: UpdateArtworkDto, file?: Express.Multer.File) {
     await this.findOne(id);
+    let updated: any;
     // 새 이미지가 업로드된 경우 Storage에 저장 후 URL 갱신
     if (file) {
       const imageUrl = await this.artworkRepository.uploadImage(id, file);
-      return this.artworkRepository.update(id, { ...dto, image_url: imageUrl });
+      updated = await this.artworkRepository.update(id, { ...dto, image_url: imageUrl });
+    } else {
+      updated = await this.artworkRepository.update(id, dto);
     }
-    return this.artworkRepository.update(id, dto);
+    // 전시품 위치/맵 정보 변경 시 routes 웨이포인트 자동 동기화
+    await this.routesService.syncWaypointsFromArtwork(updated);
+    return updated;
   }
 
   async remove(id: string) {

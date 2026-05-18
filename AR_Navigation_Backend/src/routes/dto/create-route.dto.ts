@@ -7,6 +7,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
+
 export class WaypointDto {
   @IsNumber()
   x: number;
@@ -22,6 +23,11 @@ export class WaypointDto {
 
   @IsString()
   instruction: string;
+
+  // 소속 맵 인덱스: 0 = 맵 A (145962), 1 = 맵 B (145963)
+  @IsNumber()
+  @IsOptional()
+  mapIndex?: number;
 }
 
 export class CreateRouteDto {

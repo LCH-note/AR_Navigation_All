@@ -17,8 +17,9 @@
            └ 도슨트 설명 (TMP — 값이 있을 때만)
 
     좌표:
-      Exhibit.localPosition (Immersal 맵 로컬 좌표) 를
+      Exhibit.localPosition (Immersal 맵 로컬 좌표, DB의 pos_x/pos_z) 를
       ARNavigationController.MapLocalToWorld() 로 매 프레임 갱신합니다.
+      씬 앵커 시스템은 제거됨 — DB 좌표만 사용합니다.
 */
 
 using System.Collections;
@@ -53,13 +54,9 @@ public class DocentManager : MonoBehaviour
     [Tooltip("TMP_FontAsset이 있을 경우 직접 연결 (docentFontTTF보다 우선 적용)")]
     [SerializeField] private TMP_FontAsset docentFont;
 
-    [Header("씬 앵커 (선택)")]
-    [Tooltip("전시품 이름과 씬 오브젝트를 연결합니다. 앵커가 있는 전시품은 해당 오브젝트 위치에 패널이 고정됩니다.")]
-    [SerializeField] private DocentAnchorEntry[] sceneAnchors;
-
     // ── 내부 상태 ────────────────────────────────────────────────────
-    // panel: 생성된 패널 루트, localPos: DB 좌표(앵커 없을 때 폴백), mapIndex: 맵 구분, anchor: 씬 앵커(null 가능)
-    private readonly List<(GameObject panel, Vector3 localPos, int mapIndex, Transform anchor)> _panels = new();
+    // panel: 생성된 패널 루트, localPos: DB Immersal 로컬 좌표, mapIndex: 맵 구분
+    private readonly List<(GameObject panel, Vector3 localPos, int mapIndex)> _panels = new();
     private bool _docentVisible = false;
 
     // ── 공개 프로퍼티 ────────────────────────────────────────────────
@@ -153,14 +150,11 @@ public class DocentManager : MonoBehaviour
     {
         if (!_docentVisible || navigationController == null) return;
 
+        // DB Immersal 로컬 좌표를 매 프레임 월드 좌표로 변환하여 패널 위치 갱신
         foreach (var entry in _panels)
         {
             if (entry.panel == null || !entry.panel.activeSelf) continue;
 
-            // 앵커가 있으면 위치는 Transform 부모 관계가 자동 처리 → 스킵
-            if (entry.anchor != null) continue;
-
-            // 앵커 없음: Immersal XRSpace 변환으로 매 프레임 위치 동기화
             Vector3 worldPos = navigationController.MapLocalToWorld(entry.localPos, entry.mapIndex);
             worldPos.y = panelHeightOffset;
             entry.panel.transform.position = worldPos;
@@ -221,33 +215,20 @@ public class DocentManager : MonoBehaviour
             // 이름이 없으면 패널 생성 의미 없음
             if (string.IsNullOrEmpty(exhibit.name)) continue;
 
-            Transform anchor = FindAnchor(exhibit.name);
+            // 진단용 로그 — 원인 파악 후 제거
+            Debug.Log($"[DocentManager] exhibitId={exhibit.exhibitId} name={exhibit.name} " +
+                      $"mapIndex={exhibit.mapIndex} localPos={exhibit.localPosition}");
 
-            Vector3 worldPos;
-            if (anchor != null)
-            {
-                // 앵커 모드: 씬 오브젝트 위치를 그대로 사용
-                worldPos = anchor.position;
-                worldPos.y += panelHeightOffset;
-            }
-            else
-            {
-                // 폴백: DB 좌표 + XRSpace 변환
-                worldPos = navigationController.MapLocalToWorld(exhibit.localPosition, exhibit.mapIndex);
-                worldPos.y = panelHeightOffset;
-            }
+            // DB Immersal 로컬 좌표 → 월드 좌표 변환
+            Vector3 worldPos = navigationController.MapLocalToWorld(exhibit.localPosition, exhibit.mapIndex);
+            Debug.Log($"[DocentManager] → worldPos={worldPos}");
+            worldPos.y = panelHeightOffset;
 
             RawImage rawImage;
             var panel = CreateDocentPanel(exhibit, worldPos, out rawImage);
 
-            if (anchor != null)
-            {
-                // 앵커 자식으로 부착 → 앵커 이동 시 패널도 따라감
-                panel.transform.SetParent(anchor, true);
-            }
-
             panel.SetActive(false); // 초기 숨김 — ToggleDocents() 호출 전까지 비표시
-            _panels.Add((panel, exhibit.localPosition, exhibit.mapIndex, anchor));
+            _panels.Add((panel, exhibit.localPosition, exhibit.mapIndex));
 
             // 이미지 URL이 있으면 비동기 다운로드 후 RawImage에 적용
             if (!string.IsNullOrEmpty(exhibit.imageUrl) && rawImage != null && ApiClient.Instance != null)
@@ -544,19 +525,6 @@ public class DocentManager : MonoBehaviour
         _docentVisible = false;
     }
 
-    // ── 앵커 탐색: 전시품 이름으로 sceneAnchors 배열에서 일치하는 Transform 반환 ──
-    private Transform FindAnchor(string exhibitName)
-    {
-        if (sceneAnchors == null) return null;
-        foreach (var entry in sceneAnchors)
-        {
-            if (entry.anchor != null &&
-                string.Equals(entry.exhibitName, exhibitName, System.StringComparison.Ordinal))
-                return entry.anchor;
-        }
-        return null;
-    }
-
     // ── ZTest Always 설정 (AR 바닥 메시에 가려지지 않도록) ──────────
     private void SetZTestAlways(GameObject root)
     {
@@ -571,15 +539,4 @@ public class DocentManager : MonoBehaviour
             }
         }
     }
-}
-
-// Inspector에서 전시품 이름 ↔ 씬 앵커 오브젝트를 연결하는 데이터 클래스
-[System.Serializable]
-public class DocentAnchorEntry
-{
-    [Tooltip("DB에 등록된 전시품 이름 (artworks.title) 과 정확히 일치해야 합니다.")]
-    public string exhibitName;
-
-    [Tooltip("씬에 배치한 빈 GameObject. 이 오브젝트의 위치에 도슨트 패널이 고정됩니다.")]
-    public Transform anchor;
 }

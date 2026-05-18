@@ -25,6 +25,14 @@ export class RoutesRepository {
     return data;
   }
 
+  async updateWaypoints(id: string, waypoints: any[]) {
+    const { error } = await this.supabase.db
+      .from('routes')
+      .update({ waypoints, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw error;
+  }
+
   async delete(id: string) {
     const { error } = await this.supabase.db
       .from('routes')

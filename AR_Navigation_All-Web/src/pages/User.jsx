@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { authFetch, removeToken } from "../utils/auth";
 
 function Index() {
     const location = useLocation();
+    const navigate = useNavigate();
+    const handleLogout = () => {
+        removeToken();
+        navigate('/login', { replace: true });
+    };
 
     // --- 리뷰 목록 페이지네이션 및 데이터 상태 ---
     const [currentPage, setCurrentPage] = useState(1);
@@ -14,12 +20,13 @@ function Index() {
     // --- 리뷰 데이터 패칭 함수 ---
     const fetchReviews = async () => {
         try {
-            // NestJS ReviewController의 GET /api/reviews 호출 (인증 불필요)
-            const response = await fetch("/api/reviews");
+            const response = await authFetch("/api/reviews");
             if (response.ok) {
-                // NestJS ResponseInterceptor가 { success, data } 형태로 래핑
                 const result = await response.json();
                 setReviewsData(result.data);
+            } else if (response.status === 401) {
+                removeToken();
+                navigate('/login', { replace: true });
             }
         } catch (error) {
             console.error("리뷰 데이터 로드 실패:", error);
@@ -36,22 +43,21 @@ function Index() {
         if (!window.confirm("이 리뷰를 삭제하시겠습니까?")) return;
 
         try {
-            // NestJS ReviewController의 DELETE /api/reviews/:id 호출
-            // 현재 웹에 JWT 인증 미구현 — 가드가 걸린 경우 403 반환될 수 있음
-            const response = await fetch(`/api/reviews/${id}`, {
+            const response = await authFetch(`/api/reviews/${id}`, {
                 method: "DELETE",
             });
 
             if (response.ok) {
-                // 삭제 성공 시 목록 갱신
                 fetchReviews();
+            } else if (response.status === 401) {
+                removeToken();
+                navigate('/login', { replace: true });
             } else {
-                // 권한 오류(403) 등 실패 케이스 처리
                 alert("삭제 실패: 권한이 없습니다.");
             }
         } catch (error) {
             console.error("리뷰 삭제 오류:", error);
-            alert("삭제 실패: 권한이 없습니다.");
+            alert("삭제 실패: 서버에 연결할 수 없습니다.");
         }
     };
 
@@ -140,7 +146,17 @@ function Index() {
                     </div>
                 </div>
 
-                <SidebarClock />
+                {/* 사이드바 하단: 로그아웃 버튼 + 시계 */}
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:bg-red-900/20 hover:text-red-400 transition-colors w-full text-left"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>logout</span>
+                        <span className="text-sm font-medium">로그아웃</span>
+                    </button>
+                    <SidebarClock />
+                </div>
             </nav>
 
             {/* 메인 콘텐츠 영역 */}

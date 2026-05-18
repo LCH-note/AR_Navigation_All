@@ -354,10 +354,12 @@ public class UIManager : MonoBehaviour
         try
         {
             // 모든 경유지를 순서대로 방문하는 전체 NavMesh 경로 한번에 계산
-            var positions = System.Array.ConvertAll(selectedRoute.waypoints, w => w.localPosition);
-            var names     = System.Array.ConvertAll(selectedRoute.waypoints,
+            // mapIndex 를 함께 전달해야 AR Space 2 좌표를 올바른 XRSpace 로 변환할 수 있음
+            var positions  = System.Array.ConvertAll(selectedRoute.waypoints, w => w.localPosition);
+            var names      = System.Array.ConvertAll(selectedRoute.waypoints,
                 w => !string.IsNullOrEmpty(w.displayName) ? w.displayName : w.instruction);
-            arNavigationController?.StartNavigationToAll(positions, names);
+            var mapIndices = System.Array.ConvertAll(selectedRoute.waypoints, w => w.mapIndex);
+            arNavigationController?.StartNavigationToAll(positions, names, mapIndices);
         }
         catch (System.Exception e)
         {
@@ -389,10 +391,12 @@ public class UIManager : MonoBehaviour
         try
         {
             // 전시품 좌표·이름 배열 구성 → 전체 NavMesh 경로를 한번에 계산 후 단일 경로로 안내
-            var positions = System.Array.ConvertAll(userRoute.waypoints, w => w.localPosition);
-            var names     = System.Array.ConvertAll(userRoute.waypoints,
+            // mapIndex 를 함께 전달해야 AR Space 2 좌표를 올바른 XRSpace 로 변환할 수 있음
+            var positions  = System.Array.ConvertAll(userRoute.waypoints, w => w.localPosition);
+            var names      = System.Array.ConvertAll(userRoute.waypoints,
                 w => !string.IsNullOrEmpty(w.displayName) ? w.displayName : w.instruction);
-            arNavigationController?.StartNavigationToAll(positions, names);
+            var mapIndices = System.Array.ConvertAll(userRoute.waypoints, w => w.mapIndex);
+            arNavigationController?.StartNavigationToAll(positions, names, mapIndices);
         }
         catch (System.Exception e)
         {

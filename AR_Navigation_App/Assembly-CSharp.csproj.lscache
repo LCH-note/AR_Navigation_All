@@ -61,7 +61,22 @@ Assets/
  Navigation/
   ARNavigationController.cs
   DocentManager.cs
+  EditorXRSpaceLock.cs
   FloorMapController.cs
+  MapSystem/
+   Anchor.cs
+   CoordinateDisplay.cs
+   DocentPanel.cs
+   HybridLocationTracker.cs
+   MapAnchorCalibrator.cs
+   MapSettings.cs
+   NavigationWaypoint.cs
+   Prototype/
+    ARNavigationSystem.cs
+    ImmersalLocationConverter.cs
+    NavigationPathManager.cs
+   ScannedRegion.cs
+   UnifiedCoordinateSystem.cs
   NavRouteData.cs
   RouteSelectController.cs
   RouteSelectUserController.cs
