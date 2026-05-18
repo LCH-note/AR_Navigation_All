@@ -1,0 +1,78 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+
+    <!-- === 템플릿 정의: 각 화면 UXML 을 재사용 가능한 템플릿으로 등록 === -->
+    <ui:Template name="StartScreen"           src="project://database/Assets/UI%20Toolkit/StartScreen.uxml" />
+    <ui:Template name="MainScreen"            src="project://database/Assets/UI%20Toolkit/MainScreen.uxml" />
+    <ui:Template name="MapScreen"             src="project://database/Assets/UI%20Toolkit/MapScreen.uxml" />
+    <ui:Template name="RouteSelectScreen"     src="project://database/Assets/UI%20Toolkit/RouteSelectScreen.uxml" />
+    <!-- 전시품 직접 선택 화면: 전시품 다중 선택 후 경유 경로 생성 -->
+    <ui:Template name="RouteSelectScreenUser" src="project://database/Assets/UI%20Toolkit/RouteSelectScreenUser.uxml" />
+    <!-- AR 내비게이션 실행 화면: 투명 배경 + 가속도계 지도 표시 -->
+    <ui:Template name="ARMapScreen"           src="project://database/Assets/UI%20Toolkit/ARMapScreen.uxml" />
+    <!-- 리뷰 작성 화면: 별점 + 의견 입력 -->
+    <ui:Template name="UserReviewScreen"      src="project://database/Assets/UI%20Toolkit/UserReviewScreen.uxml" />
+
+    <!-- 공통 스타일 시트 -->
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss" />
+
+    <!-- === 앱 루트 컨테이너 === -->
+    <ui:VisualElement name="root" style="flex-grow: 1; width: 100%; height: 100%;">
+
+        <!-- 시작 화면: 앱 진입점, 초기 표시 -->
+        <ui:Instance template="StartScreen"
+                     name="StartScreenInstance"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 메인 메뉴 화면: 초기엔 숨김 -->
+        <ui:Instance template="MainScreen"
+                     name="MainScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 전체 지도 화면: 초기엔 숨김 -->
+        <ui:Instance template="MapScreen"
+                     name="MapScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 경로 선택 화면 (추천 경로): 초기엔 숨김 -->
+        <ui:Instance template="RouteSelectScreen"
+                     name="RouteSelectScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 전시품 직접 선택 화면: 초기엔 숨김 -->
+        <ui:Instance template="RouteSelectScreenUser"
+                     name="RouteSelectUserScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!--
+            AR 내비게이션 화면: 초기엔 숨김
+            RouteSelectScreen 의 "내비게이션 시작" 버튼으로 진입
+            배경이 투명이므로 AR 카메라 영상이 보임
+        -->
+        <ui:Instance template="ARMapScreen"
+                     name="ARMapScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!-- 리뷰 작성 화면: 초기엔 숨김 -->
+        <ui:Instance template="UserReviewScreen"
+                     name="UserReviewScreenInstance"
+                     class="hidden"
+                     style="width: 100%; height: 100%;" />
+
+        <!--
+            한글 폰트 글리프 커버리지 라벨 (렌더링 안 됨)
+            C# 코드에서 동적으로 설정하는 한글 문자열 중 다른 UXML에 없는 문자들을 여기에 포함.
+            Unity 빌드 시 UXML 텍스트를 스캔해 SDF 아틀라스에 해당 글리프를 사전 구워 넣는다.
+            Dynamic 아틀라스 한계로 런타임 글리프 추가가 실패하는 Android 빌드 문제를 방지.
+        -->
+        <ui:Label
+            name="font-coverage-label"
+            text="등록된경로가없습니다전시품이없됩됨의견을남겨주세요리뷰가등록되었습니다감사합니다등록에실패했습니다다시시도해주세요점개선택됨최적안내합자동됐었실패겨의견남됩"
+            style="display: none;" />
+
+    </ui:VisualElement>
+</ui:UXML>

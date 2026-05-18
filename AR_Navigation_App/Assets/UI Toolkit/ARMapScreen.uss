@@ -1,0 +1,277 @@
+/*
+    파일명: Assets/UI Toolkit/ARMapScreen.uss
+    역할: ARMapScreen.uxml 전용 스타일 정의
+    색상 기준: StartScreen 팔레트 통일
+    폰트: MalgunGothic (한국어 지원)
+    사이즈: 모바일 가독성 확보를 위해 1.5x 스케일 적용
+    ─────────────────────────────────────
+    핵심 원칙:
+      - ar-screen 루트는 완전 투명 (AR 카메라 영상이 배경으로 보임)
+      - HUD 패널은 다크 네이비 반투명 배경으로 StartScreen 톤과 통일
+      - map-overlay는 반투명 다크 배경으로 지도 구분
+*/
+
+/* ════════════════════════════════════════════════
+   루트: 완전 투명 — AR 카메라가 배경으로 비침
+════════════════════════════════════════════════ */
+.ar-screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    flex-direction: column;
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/Fonts/MalgunGothic%20SDF.asset");
+}
+
+/* ════════════════════════════════════════════════
+   공통 HUD 패널
+════════════════════════════════════════════════ */
+.ar-hud {
+    background-color: rgba(16, 21, 31, 0.82);
+    flex-direction: row;
+    align-items: center;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+/* ── 상단 HUD ── */
+.ar-hud-top {
+    height: 108px;
+    justify-content: space-between;
+    padding-top: 12px;
+}
+
+/* ── 하단 HUD ── */
+.ar-hud-bottom {
+    height: 132px;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 24px;
+}
+
+/* ════════════════════════════════════════════════
+   상단 HUD 내부 요소
+════════════════════════════════════════════════ */
+
+/* 뒤로가기 버튼 */
+.ar-back-button {
+    width: 150px;
+    height: 66px;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgb(255, 255, 255);
+    font-size: 22px;
+    border-radius: 33px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.20);
+    -unity-font-style: bold;
+}
+
+.ar-back-button:active {
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* 층 정보 레이블 (중앙) */
+.ar-floor-label {
+    flex-grow: 1;
+    -unity-text-align: middle-center;
+    font-size: 27px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+/* 나침반 방위 레이블 */
+.ar-compass-label {
+    font-size: 33px;
+    color: rgb(100, 140, 230);
+    -unity-font-style: bold;
+}
+
+/* 도슨트 토글 버튼 (상단 HUD 우측) */
+.ar-docent-button {
+    width: 156px;
+    height: 66px;
+    background-color: rgba(41, 69, 159, 0.80);
+    color: rgb(255, 255, 255);
+    font-size: 24px;
+    border-radius: 33px;
+    border-width: 2px;
+    border-color: rgba(100, 140, 230, 0.60);
+    -unity-font-style: bold;
+    margin-left: 12px;
+}
+
+.ar-docent-button:active {
+    background-color: rgba(30, 50, 120, 0.95);
+    scale: 0.97;
+}
+
+/* ════════════════════════════════════════════════
+   중간 투명 영역 (AR 카메라 뷰)
+════════════════════════════════════════════════ */
+.ar-content-area {
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, 0);
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 18px;
+}
+
+/* ════════════════════════════════════════════════
+   기기 방향 안내 힌트 (세로 모드일 때 표시)
+════════════════════════════════════════════════ */
+.orientation-hint {
+    background-color: rgba(16, 21, 31, 0.75);
+    border-radius: 30px;
+    padding-top: 18px;
+    padding-bottom: 18px;
+    padding-left: 30px;
+    padding-right: 30px;
+    margin-bottom: 30px;
+}
+
+.hint-text {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.90);
+    -unity-text-align: middle-center;
+    -unity-font-style: italic;
+}
+
+/* ════════════════════════════════════════════════
+   지도 오버레이 패널 (수평 모드일 때 표시)
+════════════════════════════════════════════════ */
+.map-overlay {
+    background-color: rgba(16, 21, 31, 0.93);
+    border-radius: 24px;
+    border-width: 2px;
+    border-color: rgba(41, 69, 159, 0.50);
+    width: 88%;
+    max-height: 60%;
+    flex-direction: column;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* hidden: 완전히 숨김 */
+.hidden {
+    display: none;
+}
+
+/* ── 지도 헤더 바 ── */
+.map-title-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    border-bottom-width: 2px;
+    border-color: rgba(41, 69, 159, 0.30);
+}
+
+.map-title-text {
+    font-size: 24px;
+    color: rgb(100, 140, 230);
+    -unity-font-style: bold;
+}
+
+/* 범례 행 */
+.map-legend-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* 현재 위치 점 범례 */
+.legend-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background-color: rgb(41, 69, 159);
+    margin-right: 9px;
+}
+
+.legend-label {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.70);
+}
+
+/* ── 지도 캔버스 ── */
+.map-canvas {
+    flex-grow: 1;
+    margin: 12px;
+    min-height: 270px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* ════════════════════════════════════════════════
+   하단 HUD
+════════════════════════════════════════════════ */
+
+/* 유도선 토글 버튼: 하단 HUD 중앙에 배치 */
+.ar-toggle-path-button {
+    flex-grow: 1;
+    height: 66px;
+    background-color: rgba(41, 69, 159, 0.75);
+    color: rgb(255, 255, 255);
+    font-size: 24px;
+    border-radius: 33px;
+    border-width: 2px;
+    border-color: rgba(100, 140, 230, 0.50);
+    -unity-font-style: bold;
+    margin-left: 36px;
+    margin-right: 36px;
+}
+
+.ar-toggle-path-button:active {
+    background-color: rgba(30, 50, 120, 0.90);
+    scale: 0.97;
+}
+
+/* 유도선이 숨겨진 상태: 버튼을 흐리게 표시 */
+.ar-toggle-path-button--hidden {
+    background-color: rgba(24, 34, 60, 0.75);
+    color: rgba(255, 255, 255, 0.50);
+    border-color: rgba(41, 69, 159, 0.30);
+}
+
+/* 화살표 토글 버튼: 하단 HUD 우측에 배치 */
+.ar-toggle-arrow-button {
+    flex-grow: 1;
+    height: 66px;
+    background-color: rgba(41, 69, 159, 0.75);
+    color: rgb(255, 255, 255);
+    font-size: 24px;
+    border-radius: 33px;
+    border-width: 2px;
+    border-color: rgba(100, 140, 230, 0.50);
+    -unity-font-style: bold;
+    margin-left: 12px;
+    margin-right: 36px;
+}
+
+.ar-toggle-arrow-button:active {
+    background-color: rgba(30, 50, 120, 0.90);
+    scale: 0.97;
+}
+
+/* 화살표가 숨겨진 상태: 버튼을 흐리게 표시 */
+.ar-toggle-arrow-button--hidden {
+    background-color: rgba(24, 34, 60, 0.75);
+    color: rgba(255, 255, 255, 0.50);
+    border-color: rgba(41, 69, 159, 0.30);
+}
+
+/* 내비게이션 안내 문구 (향후 사용) */
+.nav-instruction {
+    font-size: 33px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    flex-grow: 1;
+}
+
+/* 거리 표시 (향후 사용) */
+.nav-distance {
+    font-size: 27px;
+    color: rgb(100, 140, 230);
+    -unity-font-style: bold;
+}

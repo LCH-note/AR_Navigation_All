@@ -1,0 +1,121 @@
+<!--
+    파일명: Assets/UI Toolkit/ARMapScreen.uxml
+    역할: AR 내비게이션 실행 화면 레이아웃 정의
+    구조:
+      - 배경: 투명 (AR 카메라가 뒤에서 렌더링됨)
+      - 상단 HUD: 항상 표시 (뒤로가기 / 층 정보 / 나침반 방위)
+      - 중간 투명 영역:
+          · orientation-hint  → 기기를 세웠을 때 안내 문구 표시
+          · map-overlay       → 기기를 눕혔을 때 2D 실내 지도 표시
+      - 하단 HUD: 항상 표시 (내비게이션 안내 / 거리)
+    제어: ARMapScreenController.cs 에서 가속도계로 map-overlay 표시/숨김
+-->
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    xsi="http://www.w3.org/2001/XMLSchema-instance"
+    engine="UnityEngine.UIElements"
+    editor="UnityEditor.UIElements"
+    noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+    editor-extension-mode="False">
+
+    <!-- ARMapScreen 전용 스타일 시트 -->
+    <Style src="project://database/Assets/UI%20Toolkit/ARMapScreen.uss" />
+
+    <!--
+        ar-map-screen: 루트 컨테이너
+        배경을 투명으로 설정해 AR 카메라 영상이 비치도록 함
+    -->
+    <ui:VisualElement name="ar-map-screen" class="ar-screen">
+
+        <!-- ── 상단 HUD (항상 표시) ─────────────────────────────── -->
+        <ui:VisualElement name="hud-top" class="ar-hud ar-hud-top">
+
+            <!-- 뒤로가기 버튼: 메인 화면으로 돌아감 -->
+            <ui:Button text="← 나가기" name="btn-back-ar" class="ar-back-button" />
+
+            <!-- 현재 층 정보 표시 (ARMapScreenController가 동적으로 변경 가능) -->
+            <ui:Label text="1층" name="label-floor" class="ar-floor-label" />
+
+            <!-- 나침반 방위 표시 (ARMapScreenController가 Input.compass로 업데이트) -->
+            <ui:Label text="N" name="label-compass" class="ar-compass-label" />
+
+            <!--
+                도슨트 토글 버튼: 전시품 도슨트 패널 전체 표시/숨김 전환
+                UIManager 에서 btn-toggle-docent 를 쿼리해 클릭 이벤트를 연결합니다.
+                초기 텍스트 "도슨트 ON" — 도슨트 비표시 상태를 나타냄
+            -->
+            <ui:Button text="도슨트 ON" name="btn-toggle-docent" class="ar-docent-button" />
+
+        </ui:VisualElement>
+        <!-- ── 상단 HUD 끝 ────────────────────────────────────── -->
+
+
+        <!-- ── 중간 콘텐츠 영역 (AR 카메라가 보이는 투명 영역) ──── -->
+        <ui:VisualElement name="ar-content-area" class="ar-content-area">
+
+            <!--
+                orientation-hint: 기기를 세웠을 때(세로 모드) 표시되는 안내 문구
+                ARMapScreenController.DetectOrientation() 에서
+                기기가 눕혀지면 hidden 클래스를 추가해 숨김
+            -->
+            <ui:VisualElement name="orientation-hint" class="orientation-hint">
+                <ui:Label
+                    name="label-hint"
+                    text="기기를 눕히면 실내 지도를 볼 수 있습니다"
+                    class="hint-text" />
+            </ui:VisualElement>
+
+            <!--
+                map-overlay: 기기를 눕혔을 때(수평 모드) 표시되는 2D 실내 지도 패널
+                초기 상태: hidden (ARMapScreenController가 가속도계를 감지해 표시)
+                map-canvas: ARMapScreenController.DrawIndoorMap() 이 Painter2D로 지도를 그림
+            -->
+            <ui:VisualElement name="map-overlay" class="map-overlay hidden">
+
+                <!-- 지도 패널 헤더 -->
+                <ui:VisualElement name="map-title-bar" class="map-title-bar">
+                    <ui:Label text="실내 지도" class="map-title-text" />
+                    <!-- 범례: 현재 위치 표시 기호 설명 -->
+                    <ui:VisualElement class="map-legend-row">
+                        <ui:VisualElement class="legend-dot" />
+                        <ui:Label text="현재 위치" class="legend-label" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <!--
+                    map-canvas: 실내 지도가 그려지는 캔버스
+                    ARMapScreenController 에서 generateVisualContent 콜백을 등록해
+                    Painter2D API 로 방, 복도, 사용자 위치, 방향 화살표를 그림
+                -->
+                <ui:VisualElement name="map-canvas" class="map-canvas" />
+
+            </ui:VisualElement>
+            <!-- ── map-overlay 끝 ── -->
+
+        </ui:VisualElement>
+        <!-- ── 중간 콘텐츠 영역 끝 ─────────────────────────────── -->
+
+
+        <!-- ── 하단 HUD (항상 표시) ─────────────────────────────── -->
+        <!--
+            유도선 토글 버튼: 경로 바닥 선을 보이게/숨기게 전환합니다.
+            화살표 토글 버튼: 3D 화살표 모델을 보이게/숨기게 전환합니다.
+            UIManager 에서 btn-toggle-path / btn-toggle-arrow 를 쿼리해 클릭 이벤트를 연결합니다.
+        -->
+        <ui:VisualElement name="hud-bottom" class="ar-hud ar-hud-bottom">
+            <ui:Button
+                text="경로선 숨기기"
+                name="btn-toggle-path"
+                class="ar-toggle-path-button" />
+            <ui:Button
+                text="화살표 숨기기"
+                name="btn-toggle-arrow"
+                class="ar-toggle-arrow-button" />
+        </ui:VisualElement>
+        <!-- ── 하단 HUD 끝 ────────────────────────────────────── -->
+
+    </ui:VisualElement>
+    <!-- ── ar-map-screen 끝 ──────────────────────────────────── -->
+
+</ui:UXML>

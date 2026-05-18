@@ -1,0 +1,50 @@
+<!--
+    파일명: Assets/UI Toolkit/MapScreen.uxml
+    역할: 전체 지도(Full Map) 화면 — 플로어별 2D 평면도를 탭으로 전환해 표시합니다.
+    구조:
+      - 상단 헤더: 뒤로가기 버튼 + 화면 제목
+      - 플로어 탭 바: B1 / 1F / 2F / 3F 탭 버튼
+      - 지도 이미지 영역: 선택된 플로어의 평면도 이미지
+      - 미등록 안내: 해당 플로어에 평면도가 없을 때 표시
+    제어: FloorMapController.cs 에서 탭 전환 및 이미지 갱신
+-->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
+    xsi="http://www.w3.org/2001/XMLSchema-instance"
+    engine="UnityEngine.UIElements" editor="UnityEditor.UIElements"
+    noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+    editor-extension-mode="False">
+
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss" />
+
+    <ui:VisualElement name="map-screen" class="screen">
+
+        <!-- ── 상단 헤더 ── -->
+        <ui:VisualElement class="sub-screen-header">
+            <ui:Button text="Back" name="btn-back-map" class="back-button" />
+            <ui:Label text="전체 지도" class="header-title" />
+        </ui:VisualElement>
+
+        <!-- ── 플로어 탭 바 ── -->
+        <ui:VisualElement name="floor-tab-bar" class="floor-tab-bar">
+            <ui:Button text="B1"  name="btn-floor-B1" class="floor-tab" />
+            <ui:Button text="1F"  name="btn-floor-1F" class="floor-tab floor-tab--active" />
+            <ui:Button text="2F"  name="btn-floor-2F" class="floor-tab" />
+            <ui:Button text="3F"  name="btn-floor-3F" class="floor-tab" />
+        </ui:VisualElement>
+
+        <!-- ── 지도 이미지 영역 ── -->
+        <ui:VisualElement name="map-image-area" class="map-image-area">
+
+            <!-- 평면도 이미지 — FloorMapController 에서 backgroundImage 를 동적으로 설정 -->
+            <ui:VisualElement name="map-image" class="map-image" />
+
+            <!-- 평면도 미등록 시 안내 문구 -->
+            <ui:Label
+                name="label-no-map"
+                text="이 층의 지도가 아직 등록되지 않았습니다.&#10;웹 대시보드 > 공간관리 > 맵 관리에서&#10;2D 평면도를 업로드해 주세요."
+                class="no-map-label hidden" />
+
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

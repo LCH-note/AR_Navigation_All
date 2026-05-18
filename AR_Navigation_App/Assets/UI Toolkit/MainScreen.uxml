@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=dbb4c00365d49134d8a69a7f1ff0ce9e&amp;type=3#NewUSSFile" />
+    <ui:VisualElement name="main-screen" class="screen main-screen-container">
+        <ui:VisualElement name="logo-image" class="logo-image" style="background-image: url(&quot;project://database/Assets/UI%20Toolkit/image/Icon_image.jpg?fileID=2800000&amp;guid=19bc80cfbeff77041960d7d3e683824b&amp;type=3#Icon_image&quot;); -unity-background-image-tint-color: rgb(255, 255, 255);" />
+        <ui:Button text="전체 지도" name="btn-view-map" class="main-menu-button" />
+        <ui:Button text="경로 선택" name="btn-select-route" class="main-menu-button" />
+        <ui:Button text="리뷰 작성하기" name="btn-review" class="main-menu-button" />
+    </ui:VisualElement>
+</ui:UXML>

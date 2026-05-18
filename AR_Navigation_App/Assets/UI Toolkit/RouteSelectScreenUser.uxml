@@ -1,0 +1,69 @@
+<!--
+    파일명: Assets/UI Toolkit/RouteSelectScreenUser.uxml
+    역할: 사용자가 전시품을 직접 선택해 경유 경로를 구성하는 화면
+    구조:
+      - 헤더: Back 버튼 + "전시품 선택" 제목
+      - 선택 안내 바: 선택된 전시품 수 표시 + 초기화 버튼
+      - 전시품 카드 ScrollView (다중 선택, 선택 순서가 경유 순서)
+      - "안내 시작" 버튼: 1개 이상 선택 시 활성화 → ARMapScreen 전환
+    제어: RouteSelectUserController.cs
+-->
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    xsi="http://www.w3.org/2001/XMLSchema-instance"
+    engine="UnityEngine.UIElements"
+    editor="UnityEditor.UIElements"
+    noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+    editor-extension-mode="False">
+
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=dbb4c00365d49134d8a69a7f1ff0ce9e&amp;type=3#NewUSSFile" />
+
+    <ui:VisualElement name="route-select-user-screen" class="screen">
+
+        <!-- 상단 헤더 -->
+        <ui:VisualElement class="sub-screen-header">
+            <ui:Button text="Back" name="btn-back-user-route" class="back-button" />
+            <ui:Label text="전시품 선택" class="header-title" />
+        </ui:VisualElement>
+
+        <!--
+            선택 상태 안내 바
+            RouteSelectUserController 에서 선택 수에 따라 텍스트 동적 업데이트
+            전체 선택(btn-select-all) / 초기화(btn-reset-exhibit) 버튼 제공
+        -->
+        <ui:VisualElement name="exhibit-status-bar" class="exhibit-status-bar">
+            <ui:Label
+                name="label-selected-count"
+                text="방문할 전시품을 순서대로 선택하세요"
+                class="exhibit-status-label" />
+            <ui:VisualElement class="exhibit-action-buttons">
+                <ui:Button
+                    text="전체 선택"
+                    name="btn-select-all"
+                    class="exhibit-reset-button exhibit-select-all-button" />
+                <ui:Button
+                    text="초기화"
+                    name="btn-reset-exhibit"
+                    class="exhibit-reset-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!--
+            전시품 카드 목록
+            RouteSelectUserController.cs 에서 동적으로 카드 생성·선택 관리
+        -->
+        <ui:ScrollView
+            name="exhibit-scroll"
+            class="route-scroll-view"
+            vertical-scroller-visibility="Hidden" />
+
+        <!-- 안내 시작 버튼 (1개 이상 선택 시 활성화) -->
+        <ui:Button
+            text="선택한 전시품 안내 시작"
+            name="btn-start-user-navigation"
+            class="start-nav-button start-nav-button--disabled" />
+
+    </ui:VisualElement>
+
+</ui:UXML>

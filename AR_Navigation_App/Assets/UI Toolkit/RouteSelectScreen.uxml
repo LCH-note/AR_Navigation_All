@@ -1,0 +1,49 @@
+<!--
+    파일명: Assets/UI Toolkit/RouteSelectScreen.uxml
+    역할: 경로 선택 화면 레이아웃 (구조만 정의)
+    경로 카드는 RouteSelectController.cs 에서 백엔드 데이터로 동적 생성
+-->
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    xsi="http://www.w3.org/2001/XMLSchema-instance"
+    engine="UnityEngine.UIElements"
+    editor="UnityEditor.UIElements"
+    noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+    editor-extension-mode="False">
+
+    <Style src="project://database/Assets/UI%20Toolkit/NewUSSFile.uss?fileID=7433441132597879392&amp;guid=dbb4c00365d49134d8a69a7f1ff0ce9e&amp;type=3#NewUSSFile" />
+
+    <ui:VisualElement name="route-select-screen" class="screen">
+
+        <!-- 상단 헤더 -->
+        <ui:VisualElement class="sub-screen-header">
+            <ui:Button text="Back" name="btn-back-route" class="back-button" />
+            <ui:Label text="경로 선택" class="header-title" />
+        </ui:VisualElement>
+
+        <!--
+            추천 경로 카드 목록 컨테이너
+            RouteSelectController.cs 에서 이 ScrollView 안에 카드를 동적으로 추가
+        -->
+        <ui:ScrollView name="route-scroll" class="route-scroll-view"
+                       vertical-scroller-visibility="Hidden" />
+
+        <!--
+            사용자 경로 선택 버튼: 전시품을 직접 골라 경로를 구성하는 화면으로 이동
+            RouteSelectScreenUser.uxml 화면으로 전환
+        -->
+        <ui:Button
+            text="직접 전시품 선택하기"
+            name="btn-user-route"
+            class="user-route-button" />
+
+        <!-- 내비게이션 시작 버튼 (추천 경로 선택 전 비활성) -->
+        <ui:Button
+            text="추천 경로로 안내 시작"
+            name="btn-start-navigation"
+            class="start-nav-button start-nav-button--disabled" />
+
+    </ui:VisualElement>
+
+</ui:UXML>

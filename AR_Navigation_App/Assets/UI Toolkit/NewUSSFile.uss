@@ -1,0 +1,835 @@
+/*
+    파일명: Assets/UI Toolkit/NewUSSFile.uss
+    역할: 앱 전체 공통 스타일 시트
+    색상 기준: StartScreen 팔레트 통일
+    폰트: MalgunGothic (한국어 지원)
+    사이즈: 모바일 가독성 확보를 위해 1.5x 스케일 적용
+    ─────────────────────────────────────
+    [ 색상 팔레트 ]
+    화면 배경   : rgb(16,  21,  31)  — 다크 네이비
+    컴포넌트 배경: rgb(18,  27,  48)  — 어두운 네이비 (버튼·헤더 등)
+    강조색      : rgb(41,  69, 159)  — 딥 블루 (테두리·강조 텍스트·CTA)
+    기본 텍스트  : rgb(255, 255, 255) — 흰색
+    보조 텍스트  : rgba(255, 255, 255, 0.45) — 반투명 흰색 (플레이스홀더 등)
+*/
+
+/* ══════════════════════════════════════════════
+   공통 화면 기본 스타일
+══════════════════════════════════════════════ */
+
+/* 모든 화면의 기본 레이아웃: 전체 영역을 덮는 절대 위치 + 폰트 */
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(16, 21, 31);
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/Fonts/MalgunGothic%20SDF.asset");
+}
+
+/* 화면 숨김: display:none 으로 레이아웃 공간도 제거 */
+.hidden {
+    display: none;
+}
+
+
+/* ══════════════════════════════════════════════
+   시작 화면 (StartScreen)
+══════════════════════════════════════════════ */
+
+/* 로고 이미지 컨테이너: 메인 화면 로고와 동일 크기 */
+.logo-label-image {
+    width: 330px;
+    height: 330px;
+    background-size: contain;
+    margin-bottom: 60px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-top-left-radius: 20%;
+    border-top-right-radius: 20%;
+    border-bottom-left-radius: 20%;
+    border-bottom-right-radius: 20%;
+}
+
+/* 시작 화면 컨테이너: 로고 + 버튼을 세로 중앙 정렬 */
+.start-screen {
+    background-color: rgb(16, 21, 31);
+    align-items: center;
+    justify-content: center;
+}
+
+/* 타이틀 텍스트 (사용 시) */
+.title-label {
+    font-size: 75px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    margin-bottom: 75px;
+    -unity-text-align: middle-center;
+}
+
+/* Start 버튼 — 전체 팔레트의 기준 */
+.start-button {
+    width: 330px;
+    height: 105px;
+    background-color: rgb(18, 27, 48);
+    color: rgb(41, 69, 159);
+    font-size: 42px;
+    border-radius: 52px;
+    border-width: 0;
+    -unity-font-style: bold;
+    justify-content: center;
+    align-items: center;
+}
+
+.start-button:hover {
+    background-color: rgb(22, 33, 60);
+    scale: 1.05;
+}
+
+.start-button:active {
+    background-color: rgb(12, 18, 32);
+    scale: 0.95;
+}
+
+/* 나이대 미선택 시 Start 버튼 비활성 스타일 */
+.start-button--disabled {
+    background-color: rgb(18, 27, 48);
+    color: rgba(41, 69, 159, 0.30);
+}
+
+.start-button--disabled:hover {
+    background-color: rgb(18, 27, 48);
+    scale: 1.0;
+}
+
+
+/* ══════════════════════════════════════════════
+   시작 화면 — 나이대 설문 (survey)
+══════════════════════════════════════════════ */
+
+/* 설문 전체 컨테이너 */
+.survey-container {
+    margin-bottom: 44px;
+    padding-top: 28px;
+    padding-bottom: 28px;
+    padding-left: 28px;
+    padding-right: 28px;
+    background-color: rgb(18, 27, 48);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-width: 1px;
+    border-color: rgba(41, 69, 159, 0.35);
+    width: 500px;
+    align-items: center;
+}
+
+/* 설문 안내 문구 */
+.survey-title {
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.85);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 22px;
+}
+
+/* 옵션 행 목록: 2열 레이아웃 */
+.survey-options {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* 개별 옵션 항목 */
+.survey-option {
+    flex-direction: row;
+    align-items: center;
+    width: 47%;
+    margin-bottom: 16px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 16px;
+    padding-right: 16px;
+    background-color: rgba(255, 255, 255, 0.04);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* 선택된 옵션 항목: 강조 테두리 + 배경 */
+.survey-option--selected {
+    background-color: rgba(41, 69, 159, 0.22);
+    border-color: rgb(41, 69, 159);
+}
+
+/* 라디오 버튼 인디케이터 (원형 테두리) */
+.radio-indicator {
+    width: 30px;
+    height: 30px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.40);
+    background-color: transparent;
+    margin-right: 14px;
+    flex-shrink: 0;
+}
+
+/* 선택된 라디오: 딥 블루로 채움 */
+.radio-indicator--selected {
+    background-color: rgb(41, 69, 159);
+    border-color: rgb(41, 69, 159);
+}
+
+/* 옵션 텍스트 */
+.survey-option-label {
+    font-size: 26px;
+    color: rgba(255, 255, 255, 0.75);
+    -unity-text-align: middle-left;
+}
+
+/* 선택된 옵션 텍스트 강조 */
+.survey-option-label--selected {
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+
+/* ══════════════════════════════════════════════
+   메인 화면 (MainScreen)
+══════════════════════════════════════════════ */
+
+/* 메인 화면 컨테이너: 버튼들을 세로 중앙 정렬 */
+.main-screen-container {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.logo-image {
+    width: 330px;
+    height: 330px;
+    background-size: contain;
+    margin-bottom: 60px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-top-left-radius: 20%;
+    border-top-right-radius: 20%;
+    border-bottom-left-radius: 20%;
+    border-bottom-right-radius: 20%;
+}
+
+/* 메인 메뉴 버튼 (View Full Map / Select Route) */
+.main-menu-button {
+    width: 80%;
+    height: 150px;
+    margin-bottom: 45px;
+    background-color: rgb(18, 27, 48);
+    border-radius: 22px;
+    border-width: 3px;
+    border-color: rgb(41, 69, 159);
+    font-size: 36px;
+    color: rgb(41, 69, 159);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.main-menu-button:hover {
+    background-color: rgb(22, 33, 60);
+}
+
+.main-menu-button:active {
+    background-color: rgb(12, 18, 32);
+}
+
+
+/* ══════════════════════════════════════════════
+   서브 화면 공통 헤더 (MapScreen / RouteSelectScreen)
+══════════════════════════════════════════════ */
+
+/* 상단 헤더 바: 뒤로가기 버튼 + 화면 제목 */
+.sub-screen-header {
+    height: 120px;
+    background-color: rgb(18, 27, 48);
+    flex-direction: row;
+    align-items: center;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+/* 뒤로가기 버튼 */
+.back-button {
+    width: 120px;
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgb(255, 255, 255);
+    font-size: 24px;
+    border-radius: 12px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.20);
+}
+
+.back-button:active {
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* 헤더 제목 텍스트: 중앙 정렬 */
+.header-title {
+    flex-grow: 1;
+    font-size: 36px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    padding-right: 120px;
+}
+
+/* 화면 중앙 콘텐츠 영역 */
+.content-area {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 플레이스홀더 텍스트: 콘텐츠 미구현 안내 */
+.placeholder-text {
+    font-size: 30px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+
+/* ══════════════════════════════════════════════
+   경로 선택 화면 (RouteSelectScreen) — 내비게이션 시작 버튼
+══════════════════════════════════════════════ */
+
+/* 하단 고정 CTA 버튼: 강조색(딥 블루) 배경 */
+.start-nav-button {
+    height: 108px;
+    margin-left: 36px;
+    margin-right: 36px;
+    margin-bottom: 48px;
+    background-color: rgb(41, 69, 159);
+    color: rgb(255, 255, 255);
+    font-size: 33px;
+    -unity-font-style: bold;
+    border-radius: 54px;
+    border-width: 0;
+}
+
+.start-nav-button:hover {
+    background-color: rgb(50, 85, 185);
+}
+
+.start-nav-button:active {
+    background-color: rgb(30, 50, 120);
+    scale: 0.97;
+}
+
+/* 경로 미선택 상태: 버튼 흐리게 표시 */
+.start-nav-button--disabled {
+    background-color: rgb(24, 34, 60);
+    color: rgba(255, 255, 255, 0.30);
+}
+
+
+/* ══════════════════════════════════════════════
+   경로 선택 화면 — 경로 카드 스타일
+══════════════════════════════════════════════ */
+
+/* 경로 목록 스크롤 영역: 헤더 아래 공간 모두 차지 */
+.route-scroll-view {
+    flex-grow: 1;
+    padding-top: 24px;
+    padding-left: 28px;
+    padding-right: 28px;
+    padding-bottom: 12px;
+}
+
+/* 경로 카드 기본 스타일 */
+.route-card {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(18, 27, 48);
+    border-radius: 20px;
+    border-width: 2px;
+    border-color: rgba(41, 69, 159, 0.38);
+    padding-top: 28px;
+    padding-bottom: 28px;
+    padding-left: 24px;
+    padding-right: 24px;
+    margin-bottom: 20px;
+}
+
+.route-card:hover {
+    background-color: rgb(22, 33, 60);
+    border-color: rgba(41, 69, 159, 0.65);
+}
+
+/* 선택된 경로 카드: 강조 테두리 + 약간 밝은 배경 */
+.route-card--selected {
+    border-color: rgb(41, 69, 159);
+    background-color: rgb(24, 38, 72);
+}
+
+/* 번호 뱃지 (원형 딥 블루) */
+.route-card-badge {
+    width: 68px;
+    height: 68px;
+    background-color: rgb(41, 69, 159);
+    border-top-left-radius: 34px;
+    border-top-right-radius: 34px;
+    border-bottom-left-radius: 34px;
+    border-bottom-right-radius: 34px;
+    align-items: center;
+    justify-content: center;
+    margin-right: 22px;
+    flex-shrink: 0;
+}
+
+/* 번호 뱃지 텍스트 */
+.route-badge-label {
+    font-size: 32px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+/* 경로 정보 텍스트 영역 (중간 flex-grow) */
+.route-card-info {
+    flex-grow: 1;
+}
+
+/* 경로 이름 (주 텍스트) */
+.route-card-title {
+    font-size: 30px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+}
+
+/* 경로 설명 (보조 텍스트) */
+.route-card-desc {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 14px;
+}
+
+/* 거리·시간 태그 행 */
+.route-card-meta {
+    flex-direction: row;
+}
+
+/* 개별 메타 태그 (둥근 배경) */
+.route-meta-tag {
+    background-color: rgba(41, 69, 159, 0.32);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 14px;
+    padding-right: 14px;
+    margin-right: 10px;
+}
+
+/* 메타 태그 텍스트 (밝은 파랑) */
+.route-meta-text {
+    font-size: 20px;
+    color: rgb(100, 140, 230);
+}
+
+/* 카드 우측 화살표 표시자 */
+.route-card-chevron {
+    font-size: 36px;
+    color: rgba(41, 69, 159, 0.70);
+    -unity-text-align: middle-right;
+    margin-left: 14px;
+    flex-shrink: 0;
+}
+
+
+/* ══════════════════════════════════════════════
+   경로 선택 화면 — 사용자 경로 선택 버튼
+══════════════════════════════════════════════ */
+
+/* 아웃라인 스타일 보조 버튼: 추천 경로 목록 하단 */
+.user-route-button {
+    height: 90px;
+    margin-left: 36px;
+    margin-right: 36px;
+    margin-bottom: 16px;
+    background-color: rgba(41, 69, 159, 0.12);
+    color: rgb(100, 140, 230);
+    font-size: 28px;
+    -unity-font-style: bold;
+    border-radius: 45px;
+    border-width: 2px;
+    border-color: rgba(41, 69, 159, 0.65);
+}
+
+.user-route-button:hover {
+    background-color: rgba(41, 69, 159, 0.22);
+}
+
+.user-route-button:active {
+    background-color: rgba(41, 69, 159, 0.32);
+    scale: 0.97;
+}
+
+
+/* ══════════════════════════════════════════════
+   전시품 선택 화면 (RouteSelectScreenUser)
+══════════════════════════════════════════════ */
+
+/* 선택 상태 안내 바: 선택 수 + 초기화 버튼 */
+.exhibit-status-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    background-color: rgba(18, 27, 48, 0.80);
+    border-bottom-width: 1px;
+    border-color: rgba(41, 69, 159, 0.25);
+}
+
+/* 선택 수 안내 텍스트 */
+.exhibit-status-label {
+    flex-grow: 1;
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.75);
+    -unity-font-style: italic;
+}
+
+/* 상태바 우측 버튼 그룹 (전체 선택 + 초기화) */
+.exhibit-action-buttons {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* 초기화·전체선택 공통 버튼 */
+.exhibit-reset-button {
+    height: 52px;
+    background-color: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 22px;
+    border-radius: 26px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.18);
+    margin-left: 12px;
+    padding-left: 18px;
+    padding-right: 18px;
+    flex-shrink: 0;
+}
+
+.exhibit-reset-button:active {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+/* 전체 선택 버튼: 강조색 적용 */
+.exhibit-select-all-button {
+    color: rgb(100, 140, 230);
+    border-color: rgba(41, 69, 159, 0.55);
+    background-color: rgba(41, 69, 159, 0.10);
+}
+
+.exhibit-select-all-button:active {
+    background-color: rgba(41, 69, 159, 0.22);
+}
+
+/* 전시품 카드 기본 스타일 (route-card 와 유사하되 독립적) */
+.exhibit-card {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgb(18, 27, 48);
+    border-radius: 20px;
+    border-width: 2px;
+    border-color: rgba(41, 69, 159, 0.32);
+    padding-top: 24px;
+    padding-bottom: 24px;
+    padding-left: 24px;
+    padding-right: 24px;
+    margin-bottom: 18px;
+}
+
+.exhibit-card:hover {
+    background-color: rgb(22, 33, 60);
+    border-color: rgba(41, 69, 159, 0.55);
+}
+
+/* 선택된 전시품 카드: 강조 테두리 */
+.exhibit-card--selected {
+    border-color: rgb(41, 69, 159);
+    background-color: rgb(22, 35, 68);
+}
+
+/* 순번 뱃지 (원형, 미선택 시 빈 테두리 원) */
+.exhibit-card-badge {
+    width: 64px;
+    height: 64px;
+    background-color: rgba(41, 69, 159, 0.15);
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    border-bottom-left-radius: 32px;
+    border-bottom-right-radius: 32px;
+    border-width: 2px;
+    border-color: rgba(41, 69, 159, 0.45);
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+/* 선택 시 뱃지 활성: 딥 블루 채움 */
+.exhibit-card-badge--active {
+    background-color: rgb(41, 69, 159);
+    border-color: rgb(41, 69, 159);
+}
+
+/* 뱃지 숫자 텍스트 */
+.exhibit-badge-label {
+    font-size: 28px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+/* 전시품 정보 영역 */
+.exhibit-card-info {
+    flex-grow: 1;
+}
+
+/* 전시품 이름 */
+.exhibit-card-name {
+    font-size: 28px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    margin-bottom: 6px;
+}
+
+/* 작가/제작자 */
+.exhibit-card-artist {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 10px;
+}
+
+/* 전시관 위치 태그 */
+.exhibit-hall-tag {
+    background-color: rgba(41, 69, 159, 0.28);
+    border-radius: 10px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 14px;
+    padding-right: 14px;
+    align-self: flex-start;
+}
+
+.exhibit-hall-label {
+    font-size: 19px;
+    color: rgb(100, 140, 230);
+}
+
+/* 체크 마크 (선택 시 표시) */
+.exhibit-check-mark {
+    font-size: 38px;
+    color: rgb(100, 140, 230);
+    -unity-text-align: middle-center;
+    margin-left: 12px;
+    flex-shrink: 0;
+    width: 42px;
+}
+
+/* 체크 마크 숨김 */
+.exhibit-check-mark--hidden {
+    display: none;
+}
+
+
+/* ══════════════════════════════════════════════
+   리뷰 작성 화면 (UserReviewScreen)
+══════════════════════════════════════════════ */
+
+/* 콘텐츠 전체 영역: 헤더 아래 공간, 스크롤 없이 세로 정렬 */
+.review-content {
+    flex-grow: 1;
+    align-items: stretch;
+    padding-top: 32px;
+    padding-left: 36px;
+    padding-right: 36px;
+    padding-bottom: 20px;
+}
+
+/* 섹션 구분 컨테이너: 별점 / 의견 각각 한 블록 */
+.review-section {
+    margin-bottom: 40px;
+    align-items: center;
+}
+
+/* 섹션 제목 텍스트 */
+.review-section-title {
+    font-size: 30px;
+    color: rgba(255, 255, 255, 0.85);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 28px;
+}
+
+/* 별 5개 가로 배치 컨테이너 */
+.star-rating-container {
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+/* 개별 별 라벨 (빈 별 기본) */
+.star-label {
+    font-size: 72px;
+    color: rgba(255, 255, 255, 0.25);
+    -unity-text-align: middle-center;
+    margin-left: 8px;
+    margin-right: 8px;
+    width: 80px;
+    height: 80px;
+}
+
+/* 채워진 별 (클릭 후 활성) */
+.star-label--active {
+    color: rgb(100, 140, 230);
+}
+
+/* 별점 숫자 텍스트 (1점~5점) */
+.review-rating-label {
+    font-size: 26px;
+    color: rgb(100, 140, 230);
+    -unity-text-align: middle-center;
+    height: 36px;
+}
+
+/* 의견 입력 TextField */
+.review-text-field {
+    width: 100%;
+    flex-grow: 1;
+    min-height: 280px;
+    background-color: rgb(18, 27, 48);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-width: 2px;
+    border-color: rgba(41, 69, 159, 0.45);
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 26px;
+    color: rgb(0, 0, 0);
+    -unity-text-align: upper-left;
+    white-space: normal;
+}
+
+/* Unity TextField 내부 입력 텍스트 요소 — 검정색 명시 */
+.review-text-field > .unity-base-text-field__input {
+    color: rgb(0, 0, 0);
+}
+
+.review-text-field:focus {
+    border-color: rgb(41, 69, 159);
+}
+
+/* placeholder 상태: 텍스트를 보조색(반투명 흰색)으로 표시 */
+.review-text-field--placeholder {
+    color: rgba(255, 255, 255, 0.38);
+}
+
+
+/* ══════════════════════════════════════════════
+   전체 지도 화면 (MapScreen) — 플로어별 평면도
+══════════════════════════════════════════════ */
+
+/* 플로어 탭 버튼 가로 배열 컨테이너 */
+.floor-tab-bar {
+    flex-direction: row;
+    height: 96px;
+    background-color: rgb(12, 20, 38);
+    border-bottom-width: 1px;
+    border-color: rgba(41, 69, 159, 0.30);
+    padding-left: 20px;
+    padding-right: 20px;
+    align-items: center;
+}
+
+/* 개별 플로어 탭 버튼 */
+.floor-tab {
+    flex-grow: 1;
+    height: 66px;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.50);
+    font-size: 28px;
+    -unity-font-style: bold;
+    border-radius: 12px;
+    border-width: 0;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.floor-tab:hover {
+    background-color: rgba(41, 69, 159, 0.18);
+    color: rgba(255, 255, 255, 0.80);
+}
+
+.floor-tab:active {
+    background-color: rgba(41, 69, 159, 0.30);
+    scale: 0.96;
+}
+
+/* 선택된 탭: 딥 블루 배경 + 흰색 텍스트 */
+.floor-tab--active {
+    background-color: rgb(41, 69, 159);
+    color: rgb(255, 255, 255);
+}
+
+.floor-tab--active:hover {
+    background-color: rgb(50, 85, 185);
+    color: rgb(255, 255, 255);
+}
+
+/* 지도 이미지 표시 영역: 남은 공간 전체 차지 */
+.map-image-area {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(8, 14, 28);
+    padding: 24px;
+}
+
+/* 평면도 이미지: 영역 내 전체 표시, 비율 유지 (잘림 없음) */
+.map-image {
+    flex-grow: 1;
+    width: 100%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* 평면도 미등록 안내 라벨 */
+.no-map-label {
+    font-size: 26px;
+    color: rgba(255, 255, 255, 0.45);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+/* 숨김 유틸리티 클래스 */
+.hidden {
+    display: none;
+}
