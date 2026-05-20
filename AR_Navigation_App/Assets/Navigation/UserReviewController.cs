@@ -154,7 +154,7 @@ public class UserReviewController : MonoBehaviour
         if (success)
         {
             // 성공: 감사 메시지 표시 후 2초 뒤 화면 리셋
-            _statusLabel.text = "리뷰가 등록되었습니다. 감사합니다! ★";
+            _statusLabel.text = "리뷰가 등록되었습니다. 감사합니다!";
             _statusLabel.AddToClassList("review-status-label--success");
             StartCoroutine(ResetAfterDelay(2f));
         }
