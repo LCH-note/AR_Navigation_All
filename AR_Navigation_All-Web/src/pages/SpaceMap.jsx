@@ -98,7 +98,12 @@ function SpaceMap() {
                     body: fileData,
                 });
                 if (!uploadRes.ok) {
-                    alert("맵은 생성됐으나 파일 업로드에 실패했습니다.");
+                    let detail = `(HTTP ${uploadRes.status})`;
+                    try {
+                        const errData = await uploadRes.json();
+                        detail = errData?.error?.message || errData?.message || detail;
+                    } catch { /* 응답 파싱 실패 시 상태 코드만 표시 */ }
+                    alert(`맵은 생성됐으나 파일 업로드에 실패했습니다.\n오류: ${detail}`);
                 }
             }
 
