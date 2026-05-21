@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -50,7 +51,6 @@ export class MapController {
     return this.mapService.remove(id);
   }
 
-  // MIME Type 및 최대 5MB 검증 — Immersal 맵 바이너리와 이미지 모두 허용
   @Post(':id/upload')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @UseInterceptors(FileInterceptor('file', multerMapFileOptions))
@@ -58,6 +58,11 @@ export class MapController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    // 파일 수신 여부 확인
+    if (!file) {
+      throw new BadRequestException('파일이 전송되지 않았습니다. FormData 필드명이 "file"인지 확인하세요.');
+    }
+    console.log(`[MapUpload] id=${id} | name=${file.originalname} | type=${file.mimetype} | size=${file.size}`);
     return this.mapService.uploadFile(id, file);
   }
 }

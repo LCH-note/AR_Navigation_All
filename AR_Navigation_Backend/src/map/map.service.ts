@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { FileStorageService } from '../common/services/file-storage.service';
 import { CreateMapDto } from './dto/create-map.dto';
 import { UpdateMapDto } from './dto/update-map.dto';
@@ -39,7 +39,12 @@ export class MapService {
   async uploadFile(id: string, file: Express.Multer.File) {
     await this.findOne(id);
     const filePath = this.fileStorage.buildPath('maps', id, file.originalname);
-    const publicUrl = await this.fileStorage.upload('map-files', filePath, file, true);
-    return this.mapRepository.updateFileUrl(id, publicUrl);
+    try {
+      const publicUrl = await this.fileStorage.upload('map-files', filePath, file, true);
+      return this.mapRepository.updateFileUrl(id, publicUrl);
+    } catch (err: any) {
+      console.error('[MapUpload] Supabase storage 오류:', err?.message ?? err);
+      throw new InternalServerErrorException(`Storage 업로드 실패: ${err?.message ?? '알 수 없는 오류'}`);
+    }
   }
 }
