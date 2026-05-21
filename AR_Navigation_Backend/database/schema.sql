@@ -49,9 +49,9 @@ CREATE TABLE public.maps (
   metadata        JSONB,
   created_at      TIMESTAMPTZ          DEFAULT NOW(),
   updated_at      TIMESTAMPTZ          DEFAULT NOW(),
-  -- 'immersal_map' | 'immersal_map_b' | 'floor_plan'
+  -- 'immersal_map' | 'immersal_map_b' | 'floor_plan' | '3d_model'
   map_type        TEXT                 DEFAULT 'immersal_map',
-  -- 층 정보: 'B1' | '1F' | '2F' | '3F' (floor-plan 구분용)
+  -- 층 정보: 'B1' | '1F' | '2F' | '3F' (floor_plan / 3d_model 구분용)
   floor           TEXT,
   CONSTRAINT maps_pkey PRIMARY KEY (id)
 ) TABLESPACE pg_default;
@@ -124,7 +124,7 @@ VALUES ('artwork-images', 'artwork-images', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 맵 파일 버킷 (Public)
--- Immersal 맵(.bytes), 평면도 이미지 업로드 시 사용
+-- Immersal 맵(.bytes), 평면도 이미지, 3D 전체도(.glb) 업로드 시 사용
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('map-files', 'map-files', true)
 ON CONFLICT (id) DO NOTHING;

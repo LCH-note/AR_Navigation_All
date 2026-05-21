@@ -3,16 +3,21 @@ import { BadRequestException } from '@nestjs/common';
 /** 이미지 업로드 허용 MIME Type */
 export const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/svg+xml'];
 
-/** 맵 파일 업로드 허용 MIME Type (Immersal 바이너리 + 이미지) */
+/** 맵 파일 업로드 허용 MIME Type (Immersal 바이너리 + 이미지 + 3D 모델) */
 export const ALLOWED_MAP_MIME_TYPES = [
   'image/jpeg',
   'image/png',
   'image/svg+xml',
   'application/octet-stream', // Immersal .bytes 맵 파일
+  'model/gltf-binary',        // .glb 3D 전체도 (공식 MIME 타입)
+  'model/gltf+json',          // .gltf 3D 전체도
 ];
 
-/** 최대 파일 크기: 5 MB */
+/** 최대 파일 크기: 일반 파일 5 MB */
 export const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+/** 최대 파일 크기: 3D 모델 파일 100 MB */
+export const MAX_MAP_FILE_SIZE = 100 * 1024 * 1024;
 
 /**
  * 이미지 파일 필터 — 허용되지 않는 MIME Type이면 BadRequestException
@@ -60,6 +65,6 @@ export const multerImageOptions = {
 
 /** 맵 파일 업로드용 multer 옵션 */
 export const multerMapFileOptions = {
-  limits: { fileSize: MAX_FILE_SIZE },
+  limits: { fileSize: MAX_MAP_FILE_SIZE },
   fileFilter: mapFileFilter,
 };
