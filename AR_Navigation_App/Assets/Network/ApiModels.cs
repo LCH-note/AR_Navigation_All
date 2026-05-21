@@ -94,11 +94,22 @@ public class FloorPlanDto
     public string version;  // 캐시 무효화용 버전 (maps.updated_at)
 }
 
+// ── 플로어별 3D 전체도 DTO (GET /assets/3d-models 배열 아이템) ──────
+[Serializable]
+public class ThreeDModelDto
+{
+    public string floor;    // 플로어 키: "B1", "1F", "2F", "3F"
+    public string fileUrl;  // Supabase Storage 공개 URL (.glb 파일)
+    public string version;  // 캐시 무효화용 버전 (maps.updated_at)
+}
+
 // ── JSON 배열 래퍼 클래스 ──────────────────────────────────────────
 // JsonUtility는 루트 배열을 지원하지 않으므로 {"items":[...]} 형태로 래핑
 [Serializable]
-public class RouteListWrapper     { public RouteDto[]     items; }
+public class RouteListWrapper        { public RouteDto[]       items; }
 [Serializable]
-public class ExhibitListWrapper   { public ExhibitDto[]   items; }
+public class ExhibitListWrapper      { public ExhibitDto[]     items; }
 [Serializable]
-public class FloorPlanListWrapper { public FloorPlanDto[] items; }
+public class FloorPlanListWrapper    { public FloorPlanDto[]   items; }
+[Serializable]
+public class ThreeDModelListWrapper  { public ThreeDModelDto[] items; }

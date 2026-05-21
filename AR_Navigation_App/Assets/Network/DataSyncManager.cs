@@ -39,8 +39,9 @@ public class DataSyncManager : MonoBehaviour
     public static string                      MapFilePath        { get; private set; }  // 맵 A (145963)
     public static string                      MapFilePath2       { get; private set; }  // 맵 B (145962)
     public static Texture2D                   FloorPlanTexture   { get; private set; }  // 단일 평면도 (레거시 호환)
-    public static Dictionary<string, Texture2D> FloorPlanTextures { get; private set; } // 플로어별 평면도
-    public static bool                        IsDataReady        { get; private set; }
+    public static Dictionary<string, Texture2D> FloorPlanTextures   { get; private set; } // 플로어별 평면도
+    public static Dictionary<string, string>   ThreeDModelUrls     { get; private set; } // 플로어별 3D 전체도 URL
+    public static bool                         IsDataReady         { get; private set; }
 
     // ── 이벤트 ───────────────────────────────────────────────────────
     public static event Action OnDataReady;   // 모든 데이터 로드 완료
@@ -176,6 +177,10 @@ public class DataSyncManager : MonoBehaviour
         // ⑥ 플로어별 2D 평면도 (MapScreen 전체 지도 화면용)
         FloorPlanTextures = new Dictionary<string, Texture2D>();
         yield return StartCoroutine(LoadAllFloorPlansAsync());
+
+        // ⑦ 플로어별 3D 전체도 URL (MapScreen 3D 뷰용)
+        ThreeDModelUrls = new Dictionary<string, string>();
+        yield return StartCoroutine(LoadAll3dModelsAsync());
 
         IsDataReady = true;
         Debug.Log("DataSyncManager: 모든 데이터 초기화 완료");
@@ -369,6 +374,41 @@ public class DataSyncManager : MonoBehaviour
                     FloorPlanTextures[dto.floor] = tex;
                     Debug.Log($"DataSyncManager: {dto.floor} 평면도 저장 완료");
                 }));
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  플로어별 3D 전체도 URL 로딩 (MapScreen 3D 뷰용)
+    // ════════════════════════════════════════════════════════════════
+
+    // GET /assets/3d-models → ThreeDModelDto[] → ThreeDModelUrls 딕셔너리 채움
+    private IEnumerator LoadAll3dModelsAsync()
+    {
+        ThreeDModelDto[] models = null;
+        yield return StartCoroutine(
+            ApiClient.Instance.GetArrayAsync<ThreeDModelDto, ThreeDModelListWrapper>(
+                "/assets/3d-models",
+                wrap => wrap.items,
+                (dtos, err) =>
+                {
+                    if (err != null)
+                        Debug.LogWarning($"DataSyncManager: 3D 전체도 목록 로드 실패. ({err})");
+                    else
+                        models = dtos;
+                }));
+
+        if (models == null || models.Length == 0)
+        {
+            Debug.Log("DataSyncManager: 등록된 3D 전체도 없음");
+            yield break;
+        }
+
+        foreach (var m in models)
+        {
+            if (!string.IsNullOrEmpty(m.floor) && !string.IsNullOrEmpty(m.fileUrl))
+                ThreeDModelUrls[m.floor] = m.fileUrl;
+        }
+        Debug.Log($"DataSyncManager: 3D 전체도 {ThreeDModelUrls.Count}개 로드 완료 " +
+                  $"({string.Join(", ", ThreeDModelUrls.Keys)})");
     }
 
     // ════════════════════════════════════════════════════════════════

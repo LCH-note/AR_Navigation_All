@@ -18,8 +18,11 @@
 
         <!-- 상단 헤더 -->
         <ui:VisualElement class="sub-screen-header">
-            <ui:Button text="Back" name="btn-back-review" class="back-button" />
-            <ui:Label text="리뷰 작성" class="header-title" />
+            <ui:VisualElement style="flex: 1;" />
+            <ui:Label text="리뷰 작성" class="header-title" style="flex: 1;" />
+            <ui:VisualElement style="flex: 1; flex-direction: row; justify-content: flex-end;">
+                <ui:Button text="건너뛰기" name="btn-skip-review" class="back-button" />
+            </ui:VisualElement>
         </ui:VisualElement>
 
         <!-- 콘텐츠 영역 -->
@@ -44,6 +47,37 @@
                     name="review-text-field"
                     class="review-text-field"
                     multiline="true" />
+            </ui:VisualElement>
+
+            <!-- 연령대 설문 섹션 -->
+            <ui:VisualElement class="review-section">
+                <ui:Label text="나이대를 선택해주세요 (선택)" class="review-section-title" />
+                <ui:VisualElement name="survey-options" class="survey-options">
+                    <ui:VisualElement name="age-10" class="survey-option">
+                        <ui:VisualElement class="radio-indicator" />
+                        <ui:Label text="10대" class="survey-option-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="age-20" class="survey-option">
+                        <ui:VisualElement class="radio-indicator" />
+                        <ui:Label text="20대" class="survey-option-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="age-30" class="survey-option">
+                        <ui:VisualElement class="radio-indicator" />
+                        <ui:Label text="30대" class="survey-option-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="age-40" class="survey-option">
+                        <ui:VisualElement class="radio-indicator" />
+                        <ui:Label text="40대" class="survey-option-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="age-50" class="survey-option">
+                        <ui:VisualElement class="radio-indicator" />
+                        <ui:Label text="50대" class="survey-option-label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="age-60" class="survey-option">
+                        <ui:VisualElement class="radio-indicator" />
+                        <ui:Label text="60대 이상" class="survey-option-label" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
             </ui:VisualElement>
 
         </ui:VisualElement>

@@ -33,4 +33,11 @@ export class AssetsController {
   getFloorPlans() {
     return this.assetsService.getFloorPlans();
   }
+
+  // Unity 앱 + 웹용 — 플로어별 3D 전체도 목록 ({ floor, fileUrl, version }[])
+  @Get('3d-models')
+  @RawResponse()
+  get3dModels() {
+    return this.assetsService.get3dModels();
+  }
 }

@@ -72,13 +72,13 @@ public class UIManager : MonoBehaviour
     private Button _btnStartNavigation;      // 추천 경로 선택 후 "안내 시작"
     private Button _btnBackUserRoute;        // 전시품 선택 화면 "Back"
     private Button _btnStartUserNavigation;  // 전시품 선택 후 "안내 시작"
+    private Button _btnExitApp;              // 메인 화면 "종료" (리뷰 화면으로 이동)
     private Button _btnBackAR;              // AR 화면 "← 나가기"
     private Button _btnTogglePath;           // AR 화면 경로선 토글
     private Button _btnToggleArrow;          // AR 화면 화살표 토글
     private Button _btnToggleDocent;         // AR 화면 도슨트 패널 토글
-    private Button _btnReview;               // 메인 화면 "리뷰 작성하기"
-    private Button _btnBackReview;           // 리뷰 화면 "Back"
-    private Button _btnSubmitReview;         // 리뷰 화면 "리뷰 남기기"
+    private Button _btnSkipReview;           // 리뷰 화면 "건너뛰기" (앱 종료)
+    private Button _btnSubmitReview;         // 리뷰 화면 "리뷰 남기기" (앱 종료)
 
     // 나이대 설문 관련
     private static readonly string[] AgeOptionNames = { "age-10", "age-20", "age-30", "age-40", "age-50", "age-60" };
@@ -134,15 +134,13 @@ public class UIManager : MonoBehaviour
         if (_startScreen != null)
         {
             SetupButton(_startScreen, "btn-start", ref _btnStart, OnStartClicked);
-            SetupSurvey();
-            UpdateStartButton();
         }
 
         if (_mainScreen != null)
         {
+            SetupButton(_mainScreen, "btn-exit-app",     ref _btnExitApp,     OnExitAppClicked);
             SetupButton(_mainScreen, "btn-view-map",     ref _btnViewMap,     OnViewMapClicked);
             SetupButton(_mainScreen, "btn-select-route", ref _btnSelectRoute, OnSelectRouteClicked);
-            SetupButton(_mainScreen, "btn-review",       ref _btnReview,      OnReviewClicked);
         }
 
         if (_mapScreen != null)
@@ -174,8 +172,9 @@ public class UIManager : MonoBehaviour
 
         if (_reviewScreen != null)
         {
-            SetupButton(_reviewScreen, "btn-back-review",   ref _btnBackReview,   OnBackFromReviewClicked);
+            SetupButton(_reviewScreen, "btn-skip-review",   ref _btnSkipReview,   OnSkipReviewClicked);
             SetupButton(_reviewScreen, "btn-submit-review", ref _btnSubmitReview, OnSubmitReviewClicked);
+            SetupSurvey();
         }
 
         // 3. 초기 화면: 시작 화면만 표시
@@ -194,12 +193,12 @@ public class UIManager : MonoBehaviour
         if (_btnStartNavigation    != null) _btnStartNavigation.clicked    -= OnStartNavigationClicked;
         if (_btnBackUserRoute      != null) _btnBackUserRoute.clicked      -= OnBackToRouteSelectClicked;
         if (_btnStartUserNavigation!= null) _btnStartUserNavigation.clicked-= OnStartUserNavigationClicked;
+        if (_btnExitApp            != null) _btnExitApp.clicked            -= OnExitAppClicked;
         if (_btnBackAR             != null) _btnBackAR.clicked             -= OnBackFromARClicked;
         if (_btnTogglePath         != null) _btnTogglePath.clicked         -= OnTogglePathClicked;
         if (_btnToggleArrow        != null) _btnToggleArrow.clicked        -= OnToggleArrowClicked;
         if (_btnToggleDocent       != null) _btnToggleDocent.clicked       -= OnToggleDocentClicked;
-        if (_btnReview             != null) _btnReview.clicked             -= OnReviewClicked;
-        if (_btnBackReview         != null) _btnBackReview.clicked         -= OnBackFromReviewClicked;
+        if (_btnSkipReview         != null) _btnSkipReview.clicked         -= OnSkipReviewClicked;
         if (_btnSubmitReview       != null) _btnSubmitReview.clicked       -= OnSubmitReviewClicked;
     }
 
@@ -207,22 +206,9 @@ public class UIManager : MonoBehaviour
     //  버튼 이벤트 핸들러
     // ════════════════════════════════════════════════════════════════
 
-    // 시작 화면 "Start" → 메인 화면 (나이대 미선택 시 차단)
+    // 시작 화면 "Start" → 메인 화면으로 바로 전환
     private void OnStartClicked()
     {
-        if (_selectedAgeIndex < 0)
-        {
-            Debug.LogWarning("UIManager: 나이대를 먼저 선택해주세요.");
-            return;
-        }
-
-        string ageGroup = AgeLabels[_selectedAgeIndex];
-        Debug.Log($"UIManager: 선택된 나이대 = {ageGroup}");
-
-        // 방문자 카운팅 (기기당 1회, 연령대 + 방문 일시 포함)
-        if (DataSyncManager.Instance != null)
-            StartCoroutine(DataSyncManager.Instance.SubmitVisitorAsync(ageGroup));
-
         ShowScreen(_mainScreen);
     }
 
@@ -230,7 +216,7 @@ public class UIManager : MonoBehaviour
     //  나이대 설문 초기화 및 선택 처리
     // ══════════════════════════════════════════════
 
-    // 설문 옵션 참조를 수집하고 클릭 이벤트를 등록합니다.
+    // 리뷰 화면의 설문 옵션 참조를 수집하고 클릭 이벤트를 등록합니다.
     private void SetupSurvey()
     {
         _surveyOptions    = new VisualElement[AgeOptionNames.Length];
@@ -239,7 +225,7 @@ public class UIManager : MonoBehaviour
 
         for (int i = 0; i < AgeOptionNames.Length; i++)
         {
-            var option = _startScreen?.Q<VisualElement>(AgeOptionNames[i]);
+            var option = _reviewScreen?.Q<VisualElement>(AgeOptionNames[i]);
             if (option == null) continue;
 
             _surveyOptions[i]   = option;
@@ -266,7 +252,6 @@ public class UIManager : MonoBehaviour
         if (_selectedAgeIndex == index)
         {
             _selectedAgeIndex = -1;
-            UpdateStartButton();
             return;
         }
 
@@ -275,19 +260,18 @@ public class UIManager : MonoBehaviour
         _surveyOptions[index]?.AddToClassList("survey-option--selected");
         _radioIndicators[index]?.AddToClassList("radio-indicator--selected");
         _surveyLabels[index]?.AddToClassList("survey-option-label--selected");
-
-        UpdateStartButton();
     }
 
-    // 선택 여부에 따라 Start 버튼 활성/비활성 스타일 갱신
-    private void UpdateStartButton()
+    // 리뷰 화면 진입 시 연령대 선택 상태를 초기화합니다.
+    private void ResetSurvey()
     {
-        if (_btnStart == null) return;
-        bool hasSelection = _selectedAgeIndex >= 0;
-        if (hasSelection)
-            _btnStart.RemoveFromClassList("start-button--disabled");
-        else
-            _btnStart.AddToClassList("start-button--disabled");
+        if (_selectedAgeIndex >= 0 && _selectedAgeIndex < (_surveyOptions?.Length ?? 0))
+        {
+            _surveyOptions[_selectedAgeIndex]?.RemoveFromClassList("survey-option--selected");
+            _radioIndicators[_selectedAgeIndex]?.RemoveFromClassList("radio-indicator--selected");
+            _surveyLabels[_selectedAgeIndex]?.RemoveFromClassList("survey-option-label--selected");
+        }
+        _selectedAgeIndex = -1;
     }
 
     // 메인 화면 "View Full Map" → 전체 지도 화면
@@ -411,24 +395,41 @@ public class UIManager : MonoBehaviour
         SyncToggleArrowButton();
     }
 
-    // 메인 화면 "리뷰 작성하기" → 리뷰 작성 화면
-    private void OnReviewClicked()
+    // 메인 화면 "종료" → 리뷰 화면으로 이동 (연령대 선택 초기화 포함)
+    private void OnExitAppClicked()
     {
+        ResetSurvey();
         userReviewController?.OnScreenShown(_reviewScreen);
         ShowScreen(_reviewScreen);
     }
 
-    // 리뷰 화면 "Back" → 메인 화면
-    private void OnBackFromReviewClicked() => ShowScreen(_mainScreen);
-
-    // 리뷰 화면 "리뷰 남기기" → 제출 후 메인 화면으로 복귀
-    private void OnSubmitReviewClicked()
+    // 리뷰 화면 "건너뛰기" → 앱 종료
+    private void OnSkipReviewClicked()
     {
-        userReviewController?.OnSubmitReview();
-        ShowScreen(_mainScreen);
+        Debug.Log("UIManager: 리뷰 건너뛰기 → 앱 종료");
+        Application.Quit();
     }
 
-    // AR 화면 "← 나가기" → 메인 화면 (내비게이션 종료 포함)
+    // 리뷰 화면 "리뷰 남기기" → 연령대 포함 방문자 등록 + 리뷰 제출 후 앱 종료
+    private void OnSubmitReviewClicked()
+    {
+        // 연령대가 선택된 경우 방문자 등록 (기기당 1회)
+        if (_selectedAgeIndex >= 0 && DataSyncManager.Instance != null)
+        {
+            string ageGroup = AgeLabels[_selectedAgeIndex];
+            Debug.Log($"UIManager: 리뷰 제출 시 연령대 등록 = {ageGroup}");
+            StartCoroutine(DataSyncManager.Instance.SubmitVisitorAsync(ageGroup));
+        }
+
+        // API 응답을 받은 뒤 앱 종료 (별점 미선택 시 onComplete 가 호출되지 않으므로 화면 유지)
+        userReviewController?.OnSubmitReview(onComplete: () =>
+        {
+            Debug.Log("UIManager: 리뷰 제출 완료 → 앱 종료");
+            Application.Quit();
+        });
+    }
+
+    // AR 화면 "← 나가기" → 메인 화면 (내비게이션 종료)
     private void OnBackFromARClicked()
     {
         // 진행 중인 내비게이션 종료 및 화살표·유도선 오브젝트 삭제

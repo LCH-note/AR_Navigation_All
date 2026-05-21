@@ -120,9 +120,10 @@ public class UserReviewController : MonoBehaviour
     // ════════════════════════════════════════════════════════════════
 
     /// <summary>
-    /// "리뷰 남기기" 버튼 클릭 시 UIManager 에서 호출
+    /// "리뷰 남기기" 버튼 클릭 시 UIManager 에서 호출.
+    /// onComplete: 제출 성공/실패 여부와 무관하게 API 응답 후 호출되는 콜백 (앱 종료 등 후처리 용)
     /// </summary>
-    public void OnSubmitReview()
+    public void OnSubmitReview(System.Action onComplete = null)
     {
         string reviewText = _isPlaceholderActive ? "" : (_textField?.value ?? "");
 
@@ -134,55 +135,38 @@ public class UserReviewController : MonoBehaviour
 
         Debug.Log($"[리뷰 제출] 별점: {_currentRating}점 / 의견: \"{reviewText}\"");
 
-        // DataSyncManager를 통해 백엔드로 POST /reviews 전송 (콜백으로 결과 수신)
         if (DataSyncManager.Instance != null)
-            StartCoroutine(DataSyncManager.Instance.SubmitReviewAsync(_currentRating, reviewText, OnReviewSubmitted));
+            StartCoroutine(DataSyncManager.Instance.SubmitReviewAsync(
+                _currentRating, reviewText,
+                success =>
+                {
+                    OnReviewSubmitted(success);
+                    onComplete?.Invoke();
+                }));
+        else
+            onComplete?.Invoke();
     }
 
     /// <summary>
     /// 리뷰 제출 결과 콜백 — DataSyncManager.SubmitReviewAsync 완료 후 호출됨
     /// </summary>
-    /// <param name="success">true: 제출 성공 / false: 제출 실패</param>
     private void OnReviewSubmitted(bool success)
     {
-        if (_statusLabel == null) return; // UXML에 라벨이 없으면 무시
+        if (_statusLabel == null) return;
 
-        // 이전 피드백 CSS 클래스 초기화
         _statusLabel.RemoveFromClassList("review-status-label--success");
         _statusLabel.RemoveFromClassList("review-status-label--error");
 
         if (success)
         {
-            // 성공: 감사 메시지 표시 후 2초 뒤 화면 리셋
             _statusLabel.text = "리뷰가 등록되었습니다. 감사합니다!";
             _statusLabel.AddToClassList("review-status-label--success");
-            StartCoroutine(ResetAfterDelay(2f));
         }
         else
         {
-            // 실패: 재시도 안내 메시지 표시 (화면 리셋 없이 유지)
-            _statusLabel.text = "리뷰 등록에 실패했습니다. 다시 시도해주세요.";
+            _statusLabel.text = "리뷰 등록에 실패했습니다.";
             _statusLabel.AddToClassList("review-status-label--error");
         }
-    }
-
-    /// <summary>
-    /// delay 초 후 상태 라벨을 초기화하고 리뷰 화면을 리셋하는 코루틴
-    /// </summary>
-    private IEnumerator ResetAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        // 상태 라벨 초기화
-        if (_statusLabel != null)
-        {
-            _statusLabel.text = "";
-            _statusLabel.RemoveFromClassList("review-status-label--success");
-            _statusLabel.RemoveFromClassList("review-status-label--error");
-        }
-
-        // 별점·입력 필드 초기 상태로 리셋
-        ResetReview();
     }
 
     /// <summary>
