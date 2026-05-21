@@ -40,13 +40,17 @@ public class DocentManager : MonoBehaviour
 
     [Header("도슨트 패널 설정")]
     [Tooltip("패널 너비 (미터)")]
-    [SerializeField] private float panelWidth = 0.55f;
+    [SerializeField] private float panelWidth = 0.60f;
 
     [Tooltip("패널 높이 (미터)")]
-    [SerializeField] private float panelHeight = 0.70f;
+    [SerializeField] private float panelHeight = 1.00f;
 
-    [Tooltip("바닥에서 패널 중심까지의 높이 (미터)")]
-    [SerializeField] private float panelHeightOffset = 0.0f;
+    [Tooltip("바닥에서 패널 중심까지의 높이 (미터). 눈높이 기준 1.2~1.4m 권장.")]
+    [SerializeField] private float panelHeightOffset = 1.2f;
+
+    [Tooltip("실기기 전용: 카메라(핸드폰)에서 지면까지 예상 거리 (m). " +
+             "ARNavigationController의 cameraToGroundOffset 값과 동일하게 설정하세요. 기본 1.5m.")]
+    [SerializeField] private float cameraToGroundOffset = 1.5f;
 
     [Tooltip("한국어 TTF 파일을 직접 연결하세요. (MalgunGothic.ttf → 런타임에 TMP_FontAsset으로 자동 변환)")]
     [SerializeField] private Font docentFontTTF;
@@ -156,7 +160,7 @@ public class DocentManager : MonoBehaviour
             if (entry.panel == null || !entry.panel.activeSelf) continue;
 
             Vector3 worldPos = navigationController.MapLocalToWorld(entry.localPos, entry.mapIndex);
-            worldPos.y = panelHeightOffset;
+            worldPos.y = CalcPanelWorldY();
             entry.panel.transform.position = worldPos;
         }
     }
@@ -222,7 +226,7 @@ public class DocentManager : MonoBehaviour
             // DB Immersal 로컬 좌표 → 월드 좌표 변환
             Vector3 worldPos = navigationController.MapLocalToWorld(exhibit.localPosition, exhibit.mapIndex);
             Debug.Log($"[DocentManager] → worldPos={worldPos}");
-            worldPos.y = panelHeightOffset;
+            worldPos.y = CalcPanelWorldY();
 
             RawImage rawImage;
             var panel = CreateDocentPanel(exhibit, worldPos, out rawImage);
@@ -511,6 +515,17 @@ public class DocentManager : MonoBehaviour
         csf.verticalFit   = ContentSizeFitter.FitMode.PreferredSize;
 
         return tmp;
+    }
+
+    // ── 패널 월드 Y 계산 ────────────────────────────────────────────
+    // 카메라 Y - 눈높이 추정값 = 바닥 Y, 거기에 panelHeightOffset 을 더해 패널 중심 위치 산출
+    // 경로선의 cameraToGroundOffset 방식과 동일한 원리
+    private float CalcPanelWorldY()
+    {
+        float groundY = (arCamera != null)
+            ? arCamera.transform.position.y - cameraToGroundOffset
+            : 0f;
+        return groundY + panelHeightOffset;
     }
 
     // ── 패널 전체 삭제 ──────────────────────────────────────────────

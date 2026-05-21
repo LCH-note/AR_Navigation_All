@@ -66,6 +66,11 @@ public class ARNavigationController : MonoBehaviour
     [Tooltip("경로 유도선 바닥 높이 오프셋 (m) — 지면보다 약간 위에 표시")]
     [SerializeField] private float pathLineHeightOffset = 0.01f;
 
+    [Tooltip("실기기 전용: 카메라(핸드폰)에서 지면까지 예상 거리 (m). " +
+             "경로선 Y = 카메라Y - 이 값 + pathLineHeightOffset. " +
+             "선이 너무 높으면 값을 키우고, 너무 낮으면 줄이세요. 기본 1.5m(눈높이 기준).")]
+    [SerializeField] private float cameraToGroundOffset = 1.5f;
+
     [Tooltip("경로 노드가 NavMesh 경계(벽면)에서 유지해야 할 최소 이격 거리 (m). " +
              "0이면 이격 처리 생략. 값이 클수록 선이 벽에서 더 멀어짐.")]
     [SerializeField] private float wallClearanceDistance = 1.2f;
@@ -549,11 +554,10 @@ public class ARNavigationController : MonoBehaviour
             if (xrLock != null) lineY = xrLock.LockedPosition.y + pathLineHeightOffset;
         }
 #else
-        // 실기기: Immersal이 매 프레임 갱신하는 XRSpace 월드 Y = 실제 바닥 기준 높이
-        // pathLineHeightOffset(0.01m)은 바닥과 경로선 간 극소 여유값
-        float lineY = (useImmersalPositioning && immersalXRSpace != null)
-            ? immersalXRSpace.position.y + pathLineHeightOffset
-            : pathLineHeightOffset;
+        // 실기기: 카메라(핸드폰) Y에서 눈높이 추정값을 빼 바닥 Y를 계산
+        // XRSpace.position.y는 맵 스캔 시 카메라 높이를 흡수해 실제 바닥보다 높아지는 문제가 있음
+        float groundY = arCamera.transform.position.y - cameraToGroundOffset;
+        float lineY = groundY + pathLineHeightOffset;
 #endif
 
         // 원시 경로점 수집: [현재 카메라 위치(바닥)] + [남은 웨이포인트들]

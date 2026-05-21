@@ -5,12 +5,14 @@ const MAP_TYPE_LABELS = {
     floor_plan: "2D 평면도",
     immersal_map: "3D 임머셜 맵",
     immersal_map_b: "3D 임머셜 맵 B",
+    "3d_model": "3D 전체도",
 };
 
 const MAP_TYPE_BADGE = {
     floor_plan: "bg-green-900/30 text-green-400 border border-green-800/50",
     immersal_map: "bg-blue-900/30 text-blue-400 border border-blue-800/50",
     immersal_map_b: "bg-violet-900/30 text-violet-400 border border-violet-800/50",
+    "3d_model": "bg-orange-900/30 text-orange-400 border border-orange-800/50",
 };
 
 // 맵 파일 관리 페이지 — 2D 평면도 및 3D 임머셜 맵 파일 추가/삭제
@@ -253,11 +255,12 @@ function SpaceMap() {
                                     <option value="floor_plan">2D 평면도</option>
                                     <option value="immersal_map">3D 임머셜 맵 (Primary)</option>
                                     <option value="immersal_map_b">3D 임머셜 맵 (Secondary)</option>
+                                    <option value="3d_model">3D 전체도 (.fbx → .glb)</option>
                                 </select>
                             </div>
 
-                            {/* 플로어 — floor_plan 타입일 때만 표시 */}
-                            {form.map_type === "floor_plan" && (
+                            {/* 플로어 — floor_plan / 3d_model 타입일 때 표시 */}
+                            {(form.map_type === "floor_plan" || form.map_type === "3d_model") && (
                                 <div>
                                     <label className="block text-xs font-medium text-slate-400 mb-1">
                                         플로어{" "}
@@ -282,6 +285,11 @@ function SpaceMap() {
                             {/* 파일 업로드 */}
                             <div>
                                 <label className="block text-xs font-medium text-slate-400 mb-1">파일 업로드 (선택)</label>
+                                {form.map_type === "3d_model" && (
+                                    <p className="text-xs text-amber-400 mb-2">
+                                        ⚠ 앱에서 로드하려면 <strong>.glb</strong> 형식이 필요합니다. FBX는 Blender에서 GLB로 변환 후 업로드하세요.
+                                    </p>
+                                )}
                                 <div
                                     onClick={() => fileInputRef.current?.click()}
                                     className="border-2 border-dashed border-slate-600 hover:border-primary/50 rounded-xl p-6 text-center cursor-pointer transition-colors group"
@@ -308,7 +316,9 @@ function SpaceMap() {
                                                 cloud_upload
                                             </span>
                                             <p className="text-sm text-slate-400">클릭하여 파일 선택</p>
-                                            <p className="text-xs text-slate-600">.bytes, .png, .jpg 등</p>
+                                            <p className="text-xs text-slate-600">
+                                                {form.map_type === "3d_model" ? ".glb, .gltf, .fbx" : ".bytes, .png, .jpg 등"}
+                                            </p>
                                         </div>
                                     )}
                                 </div>
@@ -363,7 +373,7 @@ function MapCard({ map, onDelete, formatDate }) {
                 {/* 파일 아이콘 */}
                 <div className="w-10 h-10 rounded-lg bg-[#111318] border border-slate-700 flex items-center justify-center flex-shrink-0">
                     <span className="material-symbols-outlined text-slate-400" style={{ fontSize: "20px" }}>
-                        {map.map_type === "floor_plan" ? "image" : "view_in_ar"}
+                        {map.map_type === "floor_plan" ? "image" : map.map_type === "3d_model" ? "deployed_code" : "view_in_ar"}
                     </span>
                 </div>
 
@@ -375,14 +385,14 @@ function MapCard({ map, onDelete, formatDate }) {
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${MAP_TYPE_BADGE[map.map_type] || "bg-slate-700 text-slate-300"}`}>
                             {MAP_TYPE_LABELS[map.map_type] || map.map_type}
                         </span>
-                        {/* 플로어 뱃지 — floor_plan 타입이고 floor 값이 있을 때만 표시 */}
-                        {map.map_type === "floor_plan" && map.floor && (
+                        {/* 플로어 뱃지 — floor_plan / 3d_model 타입이고 floor 값이 있을 때 표시 */}
+                        {(map.map_type === "floor_plan" || map.map_type === "3d_model") && map.floor && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-900/30 text-amber-400 border border-amber-800/50">
                                 {map.floor}
                             </span>
                         )}
                         {/* 플로어 미지정 안내 */}
-                        {map.map_type === "floor_plan" && !map.floor && (
+                        {(map.map_type === "floor_plan" || map.map_type === "3d_model") && !map.floor && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full text-slate-600 bg-slate-800">
                                 플로어 미지정
                             </span>
