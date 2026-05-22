@@ -3,29 +3,25 @@ AR 기반 문화관광 시설 내비게이션 시스템
 </h1>
 
 <p align="center">
-  <strong>Unity AR Foundation + Immersal SDK 기반</strong><br>
-  문화관광 시설 전용 실내 AR 내비게이션 시스템
+실내 AR 길안내 · Immersal VPS · Unity NavMesh 기반
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Capstone-Design-8A2BE2">
   <img src="https://img.shields.io/badge/Unity-2022.3-black?logo=unity">
-  <img src="https://img.shields.io/badge/AR%20Foundation-4.2-blue">
-  <img src="https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black">
-  <img src="https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white">
-  <img src="https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white">
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/VPS-Immersal-orange">
-  <img src="https://img.shields.io/badge/AR-Navigation-blueviolet">
-  <img src="https://img.shields.io/badge/Platform-Android-green">
+  <img src="https://img.shields.io/badge/Immersal-VPS-orange">
+  <img src="https://img.shields.io/badge/AR-Navigation-blue">
 </p>
 
 <br>
 
-> 실내 GPS 환경의 한계를 보완하기 위해  
-> Immersal VPS와 Unity AR Foundation을 활용하여 구현한  
-> 문화관광 시설 전용 AR 내비게이션 시스템입니다.
+<p align="center">
+  문화관광 시설 내부에서 사용자의 위치를 인식하고<br>
+  AR 화살표를 통해 목적지까지 실시간 길안내를 제공하는 시스템
+</p>
+
+---
+
 
 # 1. 시연 영상
 
