@@ -1,11 +1,3 @@
-
-
-https://github.com/user-attachments/assets/5f7da6ac-ff66-4188-b46b-4dc22950b081
-
-
-
-https://github.com/user-attachments/assets/aa4ce4ef-6fc3-4875-9ad8-89ef8c2733f2
-
 # AR 기반 문화관광 시설 내비게이션 시스템
 
 > Unity AR Foundation + Immersal VPS 기반  
@@ -25,14 +17,12 @@ https://github.com/user-attachments/assets/aa4ce4ef-6fc3-4875-9ad8-89ef8c2733f2
 # 🎬 시연 영상
 
 ## 내비게이터 시스템 영상 Part 1
-
-(영상 링크 넣을것1)
+https://github.com/user-attachments/assets/33aa637f-f5e8-4dd2-ba58-5706bf65100e
 
 ---
 
 ## 내비게이터 시스템 영상 Part 2
-
-(영상 링크 넣을것2)
+https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 
 ---
 
