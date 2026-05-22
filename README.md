@@ -14,7 +14,7 @@
 
 ---
 
-# 🎬 시연 영상
+# 1) 시연 영상
 
 ## 내비게이터 시스템 영상 Part 1
 https://github.com/user-attachments/assets/33aa637f-f5e8-4dd2-ba58-5706bf65100e
@@ -23,12 +23,6 @@ https://github.com/user-attachments/assets/33aa637f-f5e8-4dd2-ba58-5706bf65100e
 
 ## 내비게이터 시스템 영상 Part 2
 https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
-
----
-
-## AR 내비게이션 사진
-
-(사진들 기입)
 
 ---
 
