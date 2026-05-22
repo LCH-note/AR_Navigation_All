@@ -1,29 +1,24 @@
-<h1 align="center">
-AR Indoor Navigation System
-</h1>
+<div align="center">
 
-<p align="center">
-문화관광 시설 전용 실내 AR 내비게이션 플랫폼
-</p>
+# AR 기반 문화관광 시설 내비게이션 시스템
 
-<br>
-
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=unity,react,nodejs,github,figma"/>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/AR%20Foundation-4.2-blue">
-  <img src="https://img.shields.io/badge/VPS-Immersal-orange">
-  <img src="https://img.shields.io/badge/Database-Supabase-3FCF8E">
-</p>
+Unity AR Foundation + Immersal SDK 기반  
+문화관광 시설 전용 실내 AR 내비게이션 시스템
 
 <br>
 
-<p align="center">
-Unity AR Foundation와 Immersal SDK를 활용한<br>
-실내 공간 기반 AR 길안내 시스템
-</p>
+<img src="https://img.shields.io/badge/Unity-2022.3-black?logo=unity">
+<img src="https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black">
+<img src="https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white">
+<img src="https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white">
+
+<br><br>
+
+<img src="https://img.shields.io/badge/VPS-Immersal-orange">
+<img src="https://img.shields.io/badge/Navigation-AR-blueviolet">
+<img src="https://img.shields.io/badge/Environment-Android-success">
+
+</div>
 
 ---
 
