@@ -1,24 +1,34 @@
-<div align="center">
+<h1 align="center">
+AR 기반 문화관광 시설 내비게이션 시스템
+</h1>
 
-# AR 기반 문화관광 시설 내비게이션 시스템
-
-Unity AR Foundation + Immersal SDK 기반  
-문화관광 시설 전용 실내 AR 내비게이션 시스템
+<p align="center">
+  <em>
+  Unity AR Foundation · Immersal VPS · NavMesh 기반
+  </em>
+</p>
 
 <br>
 
-<img src="https://img.shields.io/badge/Unity-2022.3-black?logo=unity">
-<img src="https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black">
-<img src="https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white">
-<img src="https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white">
+<p align="center">
+  <img src="https://img.shields.io/badge/Unity-black?style=for-the-badge&logo=unity">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react">
+  <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs">
+  <img src="https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase">
+</p>
 
-<br><br>
+<p align="center">
+  <img src="https://img.shields.io/badge/Immersal-VPS-orange?style=flat-square">
+  <img src="https://img.shields.io/badge/AR-Navigation-blueviolet?style=flat-square">
+  <img src="https://img.shields.io/badge/Android-Supported-green?style=flat-square">
+</p>
 
-<img src="https://img.shields.io/badge/VPS-Immersal-orange">
-<img src="https://img.shields.io/badge/Navigation-AR-blueviolet">
-<img src="https://img.shields.io/badge/Environment-Android-success">
+<br>
 
-</div>
+<p align="center">
+실내 공간에서 사용자의 위치를 인식하고<br>
+AR 화살표 기반 길안내를 제공하는 문화관광 시설 전용 시스템
+</p>
 
 ---
 
