@@ -26,9 +26,6 @@ Unity AR Foundation와 Immersal SDK를 활용한<br>
 ---
 
 # 1. 시연 영상
-
-## 1.1 시스템 시연 영상 Part 1
-
 https://github.com/user-attachments/assets/d49bee32-13b6-4d47-9839-29ae484d7aec
 
 * 문화관광 시설 내부에서 길을 찾지 못하는 사용자를 위한 AR 실내 내비게이션 시스템 시연 영상
