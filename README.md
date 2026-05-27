@@ -1,4 +1,4 @@
-<h1 align="center">
+<img width="2115" height="940" alt="캡스톤 AR 내비게이션 사진 9" src="https://github.com/user-attachments/assets/cb004ec7-191e-4213-a0bf-b2a7546c1273" /><h1 align="center">
 AR Indoor Navigation System
 </h1>
 
@@ -40,6 +40,23 @@ https://github.com/user-attachments/assets/33aa637f-f5e8-4dd2-ba58-5706bf65100e
 https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 
 ---
+
+<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 7" src="https://github.com/user-attachments/assets/f511d637-68be-4548-8348-2f77db70ad03" />
+<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 6" src="https://github.com/user-attachments/assets/765c0f94-4e69-4f66-9f9e-9803ff980168" />
+<img width="481" height="866" alt="캡스톤 AR 내비게이션 사진 5" src="https://github.com/user-attachments/assets/2d4f4c74-5076-46f8-9251-7557443d0f69" />
+<img width="476" height="865" alt="캡스톤 AR 내비게이션 사진 4" src="https://github.com/user-attachments/assets/88a2fec8-8954-4b15-81fa-324ffcc607a8" />
+<img width="480" height="864" alt="캡스톤 AR 내비게이션 사진 3" src="https://github.com/user-attachments/assets/b3af64c0-0fd4-4cdf-b47d-1027fd16217a" />
+<img width="483" height="874" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/086d031a-e030-469f-812f-151a486ccf67" />
+<img width="477" height="876" alt="캡스톤 AR 내비게이션 사진 1" src="https://github.com/user-attachments/assets/d6ad4c08-b49a-4b3f-a8a8-d769b1beaffc" />
+<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 8" src="https://github.com/user-attachments/assets/2a1da042-594e-4c82-ae98-7bde2adcd255" />
+![Uplo<img width="481" height="866" alt="캡스톤 AR 내비게이션 사진 10" src="https://github.com/user-attachments/assets/65b9f64e-1a47-4473-b602-17d4c77746e9" />
+ading 캡스톤 AR 내비게이션 사진 9.png…]()<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 12" src="https://github.com/user-attachments/assets/2e1a8e90-5c5c-4876-82e5-e7d5afec4aee" />
+<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 11" src="https://github.com/user-attachments/assets/ebc212fb-85df-44d2-9edb-6ad92f3c16b0" />
+
+
+
+
+
 
 # 2. 목차
 
