@@ -57,11 +57,8 @@ https://github.com/user-attachments/assets/d49bee32-13b6-4d47-9839-29ae484d7aec
 
 <p align="center">
 <img width="250" alt="캡스톤 AR 내비게이션 사진 1" src="https://github.com/user-attachments/assets/d6ad4c08-b49a-4b3f-a8a8-d769b1beaffc" />
-<p align="center">
 <img width="250" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/086d031a-e030-469f-812f-151a486ccf67" />
-<p align="center">
 <img width="250" alt="캡스톤 AR 내비게이션 사진 3" src="https://github.com/user-attachments/assets/b3af64c0-0fd4-4cdf-b47d-1027fd16217a" />
-<p align="center">
 <img width="250" alt="캡스톤 AR 내비게이션 사진 5" src="https://github.com/user-attachments/assets/2d4f4c74-5076-46f8-9251-7557443d0f69" />
 </p>
 <p align="center">
