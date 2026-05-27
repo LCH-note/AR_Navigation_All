@@ -65,7 +65,7 @@ https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 ## 3.1 메인 화면
 
 <p align="center">
-<img width="483" height="874" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/6ff0a825-fe91-4867-ba22-447afb5ec93d" />
+<img width="180" alt="캡스톤 AR 내비게이션 사진 1" src="https://github.com/user-attachments/assets/d6ad4c08-b49a-4b3f-a8a8-d769b1beaffc" />
 </p>
 
 <p align="center">
@@ -77,23 +77,21 @@ https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 
 ## 3.2 전체 지도 화면
 
-
 <p align="center">
-<img width="480" height="864" alt="캡스톤 AR 내비게이션 사진 3" src="https://github.com/user-attachments/assets/c3112f49-9ed3-48a9-8e81-e95bb5098170" />
+<img width="180" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/086d031a-e030-469f-812f-151a486ccf67" />
 </p>
 
 <p align="center">
 시설 내부 전체 지도를 확인하는 화면입니다.<br>
-사용자는 층별 공간 구조를 확인하고 관람 전 전체 동선을 파악할 수 있습니다.
+사용자는 층별 공간 구조를 확인하고 관람 전체 동선을 파악할 수 있습니다.
 </p>
 
 ---
 
-
 ## 3.3 경로 선택 화면
 
 <p align="center">
-  <img width="476" height="865" alt="캡스톤 AR 내비게이션 사진 4" src="https://github.com/user-attachments/assets/7c5ed081-80d0-431b-8b1c-06165c87313e" />
+<img width="180" alt="캡스톤 AR 내비게이션 사진 3" src="https://github.com/user-attachments/assets/b3af64c0-0fd4-4cdf-b47d-1027fd16217a" />
 </p>
 
 <p align="center">
