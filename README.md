@@ -89,10 +89,11 @@ https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 
 ---
 
+
 ## 3.3 경로 선택 화면
 
 <p align="center">
-<img width="250" alt="캡스톤 AR 내비게이션 사진 6" src="https://github.com/user-attachments/assets/765c0f94-4e69-4f66-9f9e-9803ff980168" />
+  <img width="476" height="865" alt="캡스톤 AR 내비게이션 사진 4" src="https://github.com/user-attachments/assets/7c5ed081-80d0-431b-8b1c-06165c87313e" />
 </p>
 
 <p align="center">
