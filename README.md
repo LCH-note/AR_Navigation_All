@@ -38,23 +38,113 @@ https://github.com/user-attachments/assets/33aa637f-f5e8-4dd2-ba58-5706bf65100e
 https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 
 ---
+# 1. 애플리케이션 화면 구성
 
-<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 7" src="https://github.com/user-attachments/assets/f511d637-68be-4548-8348-2f77db70ad03" />
-<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 6" src="https://github.com/user-attachments/assets/765c0f94-4e69-4f66-9f9e-9803ff980168" />
-<img width="481" height="866" alt="캡스톤 AR 내비게이션 사진 5" src="https://github.com/user-attachments/assets/2d4f4c74-5076-46f8-9251-7557443d0f69" />
-<img width="476" height="865" alt="캡스톤 AR 내비게이션 사진 4" src="https://github.com/user-attachments/assets/88a2fec8-8954-4b15-81fa-324ffcc607a8" />
-<img width="480" height="864" alt="캡스톤 AR 내비게이션 사진 3" src="https://github.com/user-attachments/assets/b3af64c0-0fd4-4cdf-b47d-1027fd16217a" />
-<img width="483" height="874" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/086d031a-e030-469f-812f-151a486ccf67" />
-<img width="477" height="876" alt="캡스톤 AR 내비게이션 사진 1" src="https://github.com/user-attachments/assets/d6ad4c08-b49a-4b3f-a8a8-d769b1beaffc" />
-<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 8" src="https://github.com/user-attachments/assets/2a1da042-594e-4c82-ae98-7bde2adcd255" />
-<img width="2115" height="940" alt="캡스톤 AR 내비게이션 사진 9" src="https://github.com/user-attachments/assets/cb004ec7-191e-4213-a0bf-b2a7546c1273" /><h1 align="center">
-AR Indoor Navigation System
-<img width="481" height="866" alt="캡스톤 AR 내비게이션 사진 10" src="https://github.com/user-attachments/assets/65b9f64e-1a47-4473-b602-17d4c77746e9" />
-<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 12" src="https://github.com/user-attachments/assets/2e1a8e90-5c5c-4876-82e5-e7d5afec4aee" />
-<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 11" src="https://github.com/user-attachments/assets/ebc212fb-85df-44d2-9edb-6ad92f3c16b0" />
+## 1.1 메인 화면
 
+<p align="center">
+<img width="250" alt="캡스톤 AR 내비게이션 사진 4" src="https://github.com/user-attachments/assets/88a2fec8-8954-4b15-81fa-324ffcc607a8" />
+</p>
 
+<p align="center">
+애플리케이션 메인 화면입니다.<br>
+사용자는 전체 지도 확인 또는 경로 선택 기능으로 이동하여 실내 내비게이션을 시작할 수 있습니다.
+</p>
 
+---
+
+## 1.2 전체 지도 화면
+
+<p align="center">
+<img width="250" alt="캡스톤 AR 내비게이션 사진 5" src="https://github.com/user-attachments/assets/2d4f4c74-5076-46f8-9251-7557443d0f69" />
+</p>
+
+<p align="center">
+시설 내부 전체 지도를 확인하는 화면입니다.<br>
+사용자는 층별 공간 구조를 확인하고 관람 전 전체 동선을 파악할 수 있습니다.
+</p>
+
+---
+
+## 1.3 경로 선택 화면
+
+<p align="center">
+<img width="250" alt="캡스톤 AR 내비게이션 사진 6" src="https://github.com/user-attachments/assets/765c0f94-4e69-4f66-9f9e-9803ff980168" />
+</p>
+
+<p align="center">
+관리자가 등록한 추천 관람 경로를 선택하는 화면입니다.<br>
+선택된 경로를 기반으로 AR 내비게이션 안내를 시작할 수 있습니다.
+</p>
+
+---
+
+## 1.4 전시품 선택 화면
+
+<p align="center">
+<img width="250" alt="캡스톤 AR 내비게이션 사진 7" src="https://github.com/user-attachments/assets/f511d637-68be-4548-8348-2f77db70ad03" />
+</p>
+
+<p align="center">
+사용자가 원하는 전시품을 직접 선택하는 화면입니다.<br>
+선택한 전시품 목록을 기준으로 맞춤형 관람 경로를 생성할 수 있습니다.
+</p>
+
+---
+
+# 2. AR 내비게이션 시스템
+
+## 2.1 VPS 공간 맵핑
+
+<p align="center">
+<img width="250" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/086d031a-e030-469f-812f-151a486ccf67" />
+</p>
+
+<p align="center">
+Immersal SDK를 활용하여 실내 공간의 특징점을 수집한 화면입니다.<br>
+수집된 Point Cloud 데이터는 VPS 기반 위치 인식에 사용됩니다.
+</p>
+
+---
+
+## 2.2 AR 길안내 화면
+
+<p align="center">
+<img width="250" alt="캡스톤 AR 내비게이션 사진 12" src="https://github.com/user-attachments/assets/2e1a8e90-5c5c-4876-82e5-e7d5afec4aee" />
+</p>
+
+<p align="center">
+사용자 위치와 목적지를 기반으로 AR 화살표를 표시하는 화면입니다.<br>
+사용자는 화살표 방향을 따라 목적지까지 직관적으로 이동할 수 있습니다.
+</p>
+
+---
+
+## 2.3 AR 경로 시각화
+
+<p align="center">
+<img width="250" alt="캡스톤 AR 내비게이션 사진 11" src="https://github.com/user-attachments/assets/ebc212fb-85df-44d2-9edb-6ad92f3c16b0" />
+</p>
+
+<p align="center">
+NavMesh 기반으로 생성된 이동 경로를 AR 공간 위에 시각화한 화면입니다.<br>
+사용자는 경로선과 화살표를 함께 확인하며 실시간 길안내를 받을 수 있습니다.
+</p>
+
+---
+
+# 3. 관리자 웹 시스템
+
+## 3.1 관리자 대시보드
+
+<p align="center">
+<img width="700" alt="캡스톤 AR 내비게이션 사진 9" src="https://github.com/user-attachments/assets/cb004ec7-191e-4213-a0bf-b2a7546c1273" />
+</p>
+
+<p align="center">
+관리자 웹 대시보드 화면입니다.<br>
+관리자는 전시 콘텐츠, 공간 정보, 사용자 데이터를 통합적으로 관리할 수 있습니다.
+</p>
 
 
 
