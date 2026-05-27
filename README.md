@@ -29,19 +29,11 @@ Unity AR Foundation와 Immersal SDK를 활용한<br>
 
 ## 1.1 시스템 시연 영상 Part 1
 
-* 실내 공간 기반 AR 내비게이션 시스템 전체 동작 시연 영상
-* VPS 위치 인식 및 AR 길안내 기능 포함
+* 문화관광 시설 내부에서 길을 찾지 못하는 사용자를 위한 AR 실내 내비게이션 시스템 시연 영상
+* VPS 기반 실내 위치 인식과 AR 화살표 안내 기능을 통해 사용자의 이동 방향에 맞는 실시간 경로 안내 제공
 
-https://github.com/user-attachments/assets/33aa637f-f5e8-4dd2-ba58-5706bf65100e
+https://github.com/user-attachments/assets/d49bee32-13b6-4d47-9839-29ae484d7aec
 
----
-
-## 1.2 시스템 시연 영상 Part 2
-
-* AR 화살표 기반 실시간 경로 안내 시연 영상
-* 사용자의 이동 방향에 따라 경로가 동적으로 표시되는 모습 확인 가능
-
-https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 
 ---
 
