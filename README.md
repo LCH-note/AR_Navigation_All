@@ -58,49 +58,18 @@ https://github.com/user-attachments/assets/d49bee32-13b6-4d47-9839-29ae484d7aec
 <p align="center">
 <img width="250" alt="캡스톤 AR 내비게이션 사진 1" src="https://github.com/user-attachments/assets/d6ad4c08-b49a-4b3f-a8a8-d769b1beaffc" />
 </p>
-
-<p align="center">
-애플리케이션 메인 화면입니다.<br>
-사용자는 전체 지도 확인 또는 경로 선택 기능으로 이동하여 실내 내비게이션을 시작할 수 있습니다.
-</p>
-
----
-
-## 3.2 전체 지도 화면
-
 <p align="center">
 <img width="250" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/086d031a-e030-469f-812f-151a486ccf67" />
 </p>
-
-<p align="center">
-시설 내부 전체 지도를 확인하는 화면입니다.<br>
-사용자는 층별 공간 구조를 확인하고 관람 전체 동선을 파악할 수 있습니다.
-</p>
-
----
-
-## 3.3 경로 선택 화면
-
 <p align="center">
 <img width="250" alt="캡스톤 AR 내비게이션 사진 3" src="https://github.com/user-attachments/assets/b3af64c0-0fd4-4cdf-b47d-1027fd16217a" />
 </p>
-
-<p align="center">
-관리자가 등록한 추천 관람 경로를 선택하는 화면입니다.<br>
-선택된 경로를 기반으로 AR 내비게이션 안내를 시작할 수 있습니다.
-</p>
-
----
-
-## 3.4 전시품 선택 화면
-
 <p align="center">
 <img width="250" alt="캡스톤 AR 내비게이션 사진 5" src="https://github.com/user-attachments/assets/2d4f4c74-5076-46f8-9251-7557443d0f69" />
 </p>
-
 <p align="center">
-사용자가 원하는 전시품을 직접 선택하는 화면입니다.<br>
-선택한 전시품 목록을 기준으로 맞춤형 관람 경로를 생성할 수 있습니다.
+애플리케이션 메인 화면, 전체 지도 화면, 경로 선택 화면 및 전시품 선택 화면입니다.<br>
+사용자는 전체 실내 지도를 확인하고 추천 관람 경로 또는 원하는 전시품을 선택하여 맞춤형 AR 내비게이션 서비스를 이용할 수 있습니다.
 </p>
 
 ---
