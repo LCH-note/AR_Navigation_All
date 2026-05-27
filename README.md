@@ -65,7 +65,7 @@ https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 ## 3.1 메인 화면
 
 <p align="center">
-<img width="250" alt="캡스톤 AR 내비게이션 사진 4" src="https://github.com/user-attachments/assets/88a2fec8-8954-4b15-81fa-324ffcc607a8" />
+<img width="483" height="874" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/6ff0a825-fe91-4867-ba22-447afb5ec93d" />
 </p>
 
 <p align="center">
