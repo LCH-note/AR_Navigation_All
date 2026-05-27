@@ -1,5 +1,3 @@
-<img width="2115" height="940" alt="캡스톤 AR 내비게이션 사진 9" src="https://github.com/user-attachments/assets/cb004ec7-191e-4213-a0bf-b2a7546c1273" /><h1 align="center">
-AR Indoor Navigation System
 </h1>
 
 <p align="center">
@@ -49,8 +47,10 @@ https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 <img width="483" height="874" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/086d031a-e030-469f-812f-151a486ccf67" />
 <img width="477" height="876" alt="캡스톤 AR 내비게이션 사진 1" src="https://github.com/user-attachments/assets/d6ad4c08-b49a-4b3f-a8a8-d769b1beaffc" />
 <img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 8" src="https://github.com/user-attachments/assets/2a1da042-594e-4c82-ae98-7bde2adcd255" />
-![Uplo<img width="481" height="866" alt="캡스톤 AR 내비게이션 사진 10" src="https://github.com/user-attachments/assets/65b9f64e-1a47-4473-b602-17d4c77746e9" />
-ading 캡스톤 AR 내비게이션 사진 9.png…]()<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 12" src="https://github.com/user-attachments/assets/2e1a8e90-5c5c-4876-82e5-e7d5afec4aee" />
+<img width="2115" height="940" alt="캡스톤 AR 내비게이션 사진 9" src="https://github.com/user-attachments/assets/cb004ec7-191e-4213-a0bf-b2a7546c1273" /><h1 align="center">
+AR Indoor Navigation System
+<img width="481" height="866" alt="캡스톤 AR 내비게이션 사진 10" src="https://github.com/user-attachments/assets/65b9f64e-1a47-4473-b602-17d4c77746e9" />
+<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 12" src="https://github.com/user-attachments/assets/2e1a8e90-5c5c-4876-82e5-e7d5afec4aee" />
 <img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 11" src="https://github.com/user-attachments/assets/ebc212fb-85df-44d2-9edb-6ad92f3c16b0" />
 
 
