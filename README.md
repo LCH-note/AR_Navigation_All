@@ -104,7 +104,7 @@ https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 ## 3.4 전시품 선택 화면
 
 <p align="center">
-<img width="250" alt="캡스톤 AR 내비게이션 사진 7" src="https://github.com/user-attachments/assets/f511d637-68be-4548-8348-2f77db70ad03" />
+<img width="250" alt="캡스톤 AR 내비게이션 사진 5" src="https://github.com/user-attachments/assets/2d4f4c74-5076-46f8-9251-7557443d0f69" />
 </p>
 
 <p align="center">
