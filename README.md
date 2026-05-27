@@ -77,8 +77,9 @@ https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 
 ## 3.2 전체 지도 화면
 
+
 <p align="center">
-<img width="250" alt="캡스톤 AR 내비게이션 사진 5" src="https://github.com/user-attachments/assets/2d4f4c74-5076-46f8-9251-7557443d0f69" />
+<img width="480" height="864" alt="캡스톤 AR 내비게이션 사진 3" src="https://github.com/user-attachments/assets/c3112f49-9ed3-48a9-8e81-e95bb5098170" />
 </p>
 
 <p align="center">
