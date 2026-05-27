@@ -121,7 +121,8 @@ https://github.com/user-attachments/assets/83a3385e-1df8-434d-bd19-296f33745eeb
 ## 4.1 VPS 공간 맵핑
 
 <p align="center">
-<img width="250" alt="캡스톤 AR 내비게이션 사진 2" src="https://github.com/user-attachments/assets/086d031a-e030-469f-812f-151a486ccf67" />
+<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 7" src="https://github.com/user-attachments/assets/59bc411d-18af-42a4-8b06-ad15ae69f0b5" />
+<img width="1080" height="2340" alt="캡스톤 AR 내비게이션 사진 8" src="https://github.com/user-attachments/assets/2a826674-52a9-4862-96c7-71b6771e0167" />
 </p>
 
 <p align="center">
