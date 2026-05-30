@@ -16,6 +16,8 @@ Shader "Custom/PathLineFlow"
         _ArrowThickness ("화살표 두께",   Range(0,1)) = 0.07
         _GlowIntensity  ("발광 강도",     Float)      = 1.4
         _BgOpacity      ("배경 투명도",   Range(0,1)) = 0.22
+        // 4 = LessEqual(기본, 벽에 가려짐) / 8 = Always(벽 무시, Inspector에서 변경 가능)
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
     }
 
     SubShader
@@ -34,7 +36,7 @@ Shader "Custom/PathLineFlow"
 
             Blend SrcAlpha OneMinusSrcAlpha
             ZWrite Off
-            ZTest Always
+            ZTest [_ZTest]
             Cull Off
 
             HLSLPROGRAM

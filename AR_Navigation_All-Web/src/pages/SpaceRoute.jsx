@@ -64,14 +64,16 @@ function SpaceRoute() {
     const handleAddWaypoint = (artwork) => {
         if (waypoints.some((w) => w.artworkId === artwork.id)) return;
         const wp = {
-            artworkId: artwork.id,
+            artworkId:   artwork.id,
+            exhibitId:   artwork.ar_marker_id || "",   // 도슨트 필터링 및 동기화 기준 ID
             displayName: artwork.title,
             instruction: "",
-            x: parseFloat(artwork.pos_x) || 0,
-            y: 0,
-            z: parseFloat(artwork.pos_z) || 0,
-            image_url: artwork.image_url,
-            floor_info: artwork.floor_info,
+            x:           parseFloat(artwork.pos_x) || 0,
+            y:           0,
+            z:           parseFloat(artwork.pos_z) || 0,
+            mapIndex:    Number(artwork.map_index) || 0,
+            image_url:   artwork.image_url,
+            floor_info:  artwork.floor_info,
         };
         const newWaypoints = [...waypoints, wp];
         setWaypoints(newWaypoints);
@@ -152,11 +154,13 @@ function SpaceRoute() {
                 estimated_distance: form.estimatedDistance || "알 수 없음",
                 estimated_time: form.estimatedTime || "알 수 없음",
                 waypoints: waypoints.map((w) => ({
-                    x: w.x,
-                    y: w.y,
-                    z: w.z,
+                    exhibitId:   w.exhibitId,
                     displayName: w.displayName,
                     instruction: w.instruction,
+                    x:           w.x,
+                    y:           w.y,
+                    z:           w.z,
+                    mapIndex:    w.mapIndex,
                 })),
             };
             const res = await fetch("/api/routes", {

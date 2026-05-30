@@ -45,6 +45,7 @@ public class WaypointDto
     public string displayName;   // 목적지 이름
     public string instruction;   // 도달 시 안내 문구
     public int    mapIndex;      // 소속 맵 인덱스: 0 = 맵 A (145962, AR Space), 1 = 맵 B (145963, AR Space 2)
+    public string exhibitId;     // 연결된 전시품 ID (Exhibit.exhibitId 와 대응). DB에 없으면 null.
 }
 
 // ── 경로 DTO (GET /routes 배열 아이템) ─────────────────────────────

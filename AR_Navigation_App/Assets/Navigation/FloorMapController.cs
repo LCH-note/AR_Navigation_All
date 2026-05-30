@@ -1,10 +1,9 @@
 /*
     파일명: Assets/Navigation/FloorMapController.cs
-    역할: 전체 지도 화면 (MapScreen.uxml) — 2D/3D 뷰 전환 및 플로어별 지도 표시 컨트롤러
+    역할: 전체 지도 화면 (MapScreen.uxml) — 층별 3D 전체도 표시 컨트롤러
     연동: UIManager → Initialize() / OnScreenShown() 호출
-         DataSyncManager.FloorPlanTextures (2D 평면도 딕셔너리)
-         DataSyncManager.ThreeDModelUrls   (3D 전체도 URL 딕셔너리)
-         Map3DViewController               (RenderTexture 3D 뷰어)
+         DataSyncManager.ThreeDModelUrls (3D 전체도 URL 딕셔너리, 키: B1/1F/2F/3F)
+         Map3DViewController             (RenderTexture 3D 뷰어)
 */
 
 using System.Collections.Generic;
@@ -24,20 +23,12 @@ public class FloorMapController : MonoBehaviour
 
     // ── UI 요소 참조 ──────────────────────────────────────────────────
     private VisualElement         _root;
-    private VisualElement         _mapImageArea;   // 2D 뷰 컨테이너
-    private VisualElement         _mapImage;
-    private Label                 _noMapLabel;
-    private VisualElement         _floorTabBar;
-    private VisualElement         _map3dArea;      // 3D 뷰 컨테이너
     private VisualElement         _map3dView;      // map-3d-view (RenderTexture 출력)
     private Label                 _no3dMapLabel;
-    private Button                _btnView2D;
-    private Button                _btnView3D;
     private readonly List<Button> _tabButtons = new List<Button>();
 
     // ── 상태 ─────────────────────────────────────────────────────────
     private string _activeFloor = "1F";
-    private bool   _is3DMode    = false;
 
     // ════════════════════════════════════════════════════════════════
     //  Unity 생명주기
@@ -62,23 +53,15 @@ public class FloorMapController : MonoBehaviour
     public void Initialize(VisualElement mapScreen)
     {
         _root         = mapScreen;
-        _mapImageArea = _root.Q<VisualElement>("map-image-area");
-        _mapImage     = _root.Q<VisualElement>("map-image");
-        _noMapLabel   = _root.Q<Label>("label-no-map");
-        _floorTabBar  = _root.Q<VisualElement>("floor-tab-bar");
-        _map3dArea    = _root.Q<VisualElement>("map-3d-area");
         _map3dView    = _root.Q<VisualElement>("map-3d-view");
         _no3dMapLabel = _root.Q<Label>("label-no-3d-map");
 
-        // 2D/3D 탭 버튼 연결
-        _btnView2D = _root.Q<Button>("btn-view-2d");
-        _btnView3D = _root.Q<Button>("btn-view-3d");
-        if (_btnView2D != null) _btnView2D.clicked += () => SetViewMode(false);
-        if (_btnView3D != null) _btnView3D.clicked += () => SetViewMode(true);
-
-        // 3D 뷰어 초기화
+        // 3D 뷰어 초기화 (아직 활성화하지 않음 — OnScreenShown() 에서 활성화)
         if (map3DViewController != null && _map3dView != null)
+        {
             map3DViewController.Initialize(_map3dView, _no3dMapLabel);
+            // SetActive(true) 는 OnScreenShown() 에서 호출 — 맵 화면이 실제로 표시될 때만 활성화
+        }
 
         // 플로어 탭 버튼 참조 수집 + 클릭 핸들러 등록
         _tabButtons.Clear();
@@ -93,7 +76,7 @@ public class FloorMapController : MonoBehaviour
 
         // 데이터 준비 상태에 따라 초기 화면 반영
         if (DataSyncManager.IsDataReady)
-            RefreshCurrentView();
+            ShowFloor(_activeFloor);
         else
             DataSyncManager.OnDataReady += OnDataReady;
     }
@@ -101,54 +84,25 @@ public class FloorMapController : MonoBehaviour
     // ── 화면이 표시될 때 UIManager 가 호출 ───────────────────────────
     public void OnScreenShown()
     {
+        // 3D 뷰어 활성화 (카메라 On, RawImage 캔버스 On, bounds 동기화 시작)
+        map3DViewController?.SetActive(true);
+
         if (DataSyncManager.IsDataReady)
-            RefreshCurrentView();
+            ShowFloor(_activeFloor);
+    }
+
+    // ── 화면이 숨겨질 때 UIManager 가 호출 ───────────────────────────
+    public void OnScreenHidden()
+    {
+        // 3D 뷰어 비활성화 (카메라 Off, RawImage 캔버스 Off → 다른 화면에 겹쳐 표시되지 않음)
+        map3DViewController?.SetActive(false);
     }
 
     // ── 데이터 로드 완료 콜백 ─────────────────────────────────────────
     private void OnDataReady()
     {
         DataSyncManager.OnDataReady -= OnDataReady;
-        RefreshCurrentView();
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  뷰 모드 전환 (2D ↔ 3D)
-    // ════════════════════════════════════════════════════════════════
-
-    private void SetViewMode(bool is3D)
-    {
-        _is3DMode = is3D;
-
-        // 탭 버튼 활성 스타일 갱신
-        if (is3D)
-        {
-            _btnView2D?.RemoveFromClassList("view-mode-tab--active");
-            _btnView3D?.AddToClassList("view-mode-tab--active");
-        }
-        else
-        {
-            _btnView2D?.AddToClassList("view-mode-tab--active");
-            _btnView3D?.RemoveFromClassList("view-mode-tab--active");
-        }
-
-        // 영역 표시 / 숨김 전환
-        if (is3D)
-        {
-            _floorTabBar?.AddToClassList("hidden");
-            _mapImageArea?.AddToClassList("hidden");
-            _map3dArea?.RemoveFromClassList("hidden");
-            map3DViewController?.SetActive(true);
-            Show3DFloor(_activeFloor);
-        }
-        else
-        {
-            _floorTabBar?.RemoveFromClassList("hidden");
-            _mapImageArea?.RemoveFromClassList("hidden");
-            _map3dArea?.AddToClassList("hidden");
-            map3DViewController?.SetActive(false);
-            ShowFloor2D(_activeFloor);
-        }
+        ShowFloor(_activeFloor);
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -163,56 +117,25 @@ public class FloorMapController : MonoBehaviour
         for (int i = 0; i < FloorKeys.Length; i++)
         {
             if (i >= _tabButtons.Count) break;
-            bool isActive = FloorKeys[i] == floor;
-            if (isActive) _tabButtons[i].AddToClassList("floor-tab--active");
-            else          _tabButtons[i].RemoveFromClassList("floor-tab--active");
+            if (FloorKeys[i] == floor)
+                _tabButtons[i].AddToClassList("floor-tab--active");
+            else
+                _tabButtons[i].RemoveFromClassList("floor-tab--active");
         }
 
-        if (_is3DMode)
-            Show3DFloor(floor);
-        else
-            ShowFloor2D(floor);
+        ShowFloor(floor);
     }
 
     // ════════════════════════════════════════════════════════════════
-    //  현재 모드에 맞는 뷰 갱신
+    //  3D 모델 표시
     // ════════════════════════════════════════════════════════════════
 
-    private void RefreshCurrentView()
-    {
-        if (_is3DMode)
-            Show3DFloor(_activeFloor);
-        else
-            ShowFloor2D(_activeFloor);
-    }
-
-    // ── 2D 평면도 표시 ────────────────────────────────────────────────
-    private void ShowFloor2D(string floor)
-    {
-        if (_mapImage == null || _noMapLabel == null) return;
-
-        var textures = DataSyncManager.FloorPlanTextures;
-        if (textures != null && textures.TryGetValue(floor, out Texture2D tex) && tex != null)
-        {
-            _mapImage.style.backgroundImage = new StyleBackground(tex);
-            _mapImage.RemoveFromClassList("hidden");
-            _noMapLabel.AddToClassList("hidden");
-        }
-        else
-        {
-            _mapImage.style.backgroundImage = StyleKeyword.None;
-            _mapImage.AddToClassList("hidden");
-            _noMapLabel.RemoveFromClassList("hidden");
-        }
-    }
-
-    // ── 3D 전체도 표시 ────────────────────────────────────────────────
-    private void Show3DFloor(string floor)
+    private void ShowFloor(string floor)
     {
         if (map3DViewController == null) return;
 
         var urls = DataSyncManager.ThreeDModelUrls;
-        if (urls != null && urls.TryGetValue(floor, out string url))
+        if (urls != null && urls.TryGetValue(floor, out string url) && !string.IsNullOrEmpty(url))
             map3DViewController.ShowModel(url);
         else
             map3DViewController.ShowNoModelMessage();

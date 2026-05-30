@@ -28,9 +28,11 @@ export class RoutesService {
     return this.routesRepository.create(dto);
   }
 
-  // artwork title 기준으로 모든 경로의 웨이포인트 좌표/맵인덱스를 동기화
+  // artwork 수정 시 모든 경로의 웨이포인트에 변경사항을 전체 동기화
+  // 매칭 기준: exhibitId(ar_marker_id) 우선 → displayName 폴백 (기존 데이터 호환)
   async syncWaypointsFromArtwork(artwork: {
     title: string;
+    ar_marker_id?: string | null;
     pos_x?: string | null;
     pos_z?: string | null;
     map_index?: number | null;
@@ -42,14 +44,22 @@ export class RoutesService {
       let changed = false;
 
       const updated = waypoints.map((wp) => {
-        if (wp.displayName !== artwork.title) return wp;
+        // exhibitId 기반 매칭 우선, 없으면 displayName으로 폴백
+        const matchById =
+          artwork.ar_marker_id && wp.exhibitId === artwork.ar_marker_id;
+        const matchByName =
+          !matchById && wp.displayName === artwork.title;
+
+        if (!matchById && !matchByName) return wp;
 
         changed = true;
         return {
           ...wp,
-          x: parseFloat(artwork.pos_x ?? '0') || 0,
-          z: parseFloat(artwork.pos_z ?? '0') || 0,
-          mapIndex: artwork.map_index ?? 0,
+          displayName: artwork.title,
+          exhibitId:   artwork.ar_marker_id ?? wp.exhibitId ?? '',
+          x:           parseFloat(artwork.pos_x ?? '0') || 0,
+          z:           parseFloat(artwork.pos_z ?? '0') || 0,
+          mapIndex:    artwork.map_index ?? 0,
         };
       });
 

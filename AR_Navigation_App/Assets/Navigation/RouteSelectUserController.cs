@@ -71,6 +71,23 @@ public class RouteSelectUserController : MonoBehaviour
         return MockExhibits.CreateUserRoute(selected);
     }
 
+    /// <summary>
+    /// 사용자가 선택한 전시품 목록을 반환합니다.
+    /// UIManager 가 DocentManager.Initialize() 에 직접 전달할 때 사용합니다.
+    /// 미선택 시 빈 배열 반환.
+    /// </summary>
+    public Exhibit[] GetSelectedExhibits()
+    {
+        if (_selectedIndices == null || _selectedIndices.Count == 0) return new Exhibit[0];
+
+        var selected = new Exhibit[_selectedIndices.Count];
+        int idx = 0;
+        foreach (int i in _selectedIndices)
+            selected[idx++] = _exhibits[i];
+
+        return selected;
+    }
+
     // ════════════════════════════════════════════════════════════════
     //  UI 참조 획득
     // ════════════════════════════════════════════════════════════════

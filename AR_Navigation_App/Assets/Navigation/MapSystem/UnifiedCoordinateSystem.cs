@@ -68,6 +68,12 @@ public class UnifiedCoordinateSystem : MonoBehaviour
     }
 
     /// <summary>
+    /// DB map_index(0/1) → Anchor mapID(1/2) 변환.
+    /// DB의 artworks.map_index는 0-based, UnifiedCoordinateSystem 앵커는 1-based mapID 사용.
+    /// </summary>
+    public static int DBIndexToAnchorID(int dbMapIndex) => dbMapIndex + 1;
+
+    /// <summary>
     /// 로컬 좌표 → 통합 좌표 변환
     /// 통합좌표 = 앵커의 통합좌표 + 맵 로컬 좌표
     /// </summary>
@@ -76,8 +82,10 @@ public class UnifiedCoordinateSystem : MonoBehaviour
         Anchor anchor = GetAnchor(mapID);
         if (anchor == null)
         {
-            Debug.LogWarning($"[통합좌표계] 맵ID={mapID} 앵커 없음 — 변환 실패");
-            return Vector3.zero;
+            // Vector3.zero 대신 입력 좌표 그대로 반환 — zero는 (0,0,0) 원점으로 잘못 해석될 수 있음
+            Debug.LogWarning($"[통합좌표계] 맵ID={mapID} 앵커 없음 — localPos 그대로 반환. " +
+                             $"DB map_index를 DBIndexToAnchorID()로 변환했는지 확인하세요.");
+            return localPos;
         }
 
         Vector3 unifiedPos = anchor.unifiedPosition + localPos;
