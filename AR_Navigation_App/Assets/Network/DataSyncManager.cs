@@ -512,7 +512,8 @@ public class DataSyncManager : MonoBehaviour
                     localPosition = new Vector3(wp.x, wp.y, wp.z),
                     displayName   = wp.displayName,
                     instruction   = wp.instruction,
-                    mapIndex      = wp.mapIndex
+                    mapIndex      = wp.mapIndex,
+                    exhibitId     = wp.exhibitId
                 };
             }
 
