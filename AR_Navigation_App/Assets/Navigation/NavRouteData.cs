@@ -28,6 +28,9 @@ public class NavWaypoint
 
     // 소속 맵 인덱스: 0 = 맵 A (145962, AR Space), 1 = 맵 B (145963, AR Space 2)
     public int mapIndex;
+
+    // 연결된 전시품 ID (Exhibit.exhibitId 와 대응). 없으면 빈 문자열.
+    public string exhibitId;
 }
 
 // ── 경로 전체 데이터 ───────────────────────────────────────────────
@@ -81,7 +84,8 @@ public static class MockExhibits
                 localPosition = optimized[i].localPosition,
                 displayName   = optimized[i].name,
                 instruction   = $"{optimized[i].name} 도착",
-                mapIndex      = optimized[i].mapIndex
+                mapIndex      = optimized[i].mapIndex,
+                exhibitId     = optimized[i].exhibitId
             };
         }
 

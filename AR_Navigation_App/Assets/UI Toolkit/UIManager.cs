@@ -350,8 +350,8 @@ public class UIManager : MonoBehaviour
             Debug.LogError($"UIManager: StartNavigationToAll 예외: {e.Message}");
         }
 
-        // 도슨트 패널 초기화 (AR 화면 진입 시 전시품 위치에 패널 생성, 초기 숨김)
-        docentManager?.Initialize(DataSyncManager.LoadedExhibits);
+        // 도슨트 패널 초기화 — 경로 웨이포인트의 exhibitId 로 해당 전시품만 렌더링
+        docentManager?.Initialize(FilterExhibitsByWaypointIds(selectedRoute, DataSyncManager.LoadedExhibits));
         SyncToggleDocentButton();
 
         SyncTogglePathButton();
@@ -387,8 +387,8 @@ public class UIManager : MonoBehaviour
             Debug.LogError($"UIManager: StartNavigationToAll 예외: {e.Message}");
         }
 
-        // 도슨트 패널 초기화
-        docentManager?.Initialize(DataSyncManager.LoadedExhibits);
+        // 도슨트 패널 초기화 — 사용자가 직접 선택한 전시품만 렌더링 (ID 직접 전달, 매칭 불필요)
+        docentManager?.Initialize(routeSelectUserController.GetSelectedExhibits());
         SyncToggleDocentButton();
 
         SyncTogglePathButton();
@@ -547,6 +547,45 @@ public class UIManager : MonoBehaviour
     // ════════════════════════════════════════════════════════════════
     //  공통 유틸리티
     // ════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// 경로의 웨이포인트 displayName 과 전시품 name 을 매칭해 해당 경로에 포함된 전시품만 반환합니다.
+    /// 매칭되는 전시품이 없으면 전체 목록을 그대로 반환합니다.
+    /// </summary>
+    /// <summary>
+    /// 추천 경로 전용 — 웨이포인트의 exhibitId 로 LoadedExhibits 에서 해당 전시품만 반환합니다.
+    /// exhibitId 가 없는 웨이포인트가 전부라면 전체 목록을 반환합니다 (DB 미설정 방어).
+    /// </summary>
+    private Exhibit[] FilterExhibitsByWaypointIds(NavRoute route, Exhibit[] allExhibits)
+    {
+        if (route?.waypoints == null || allExhibits == null || allExhibits.Length == 0)
+            return allExhibits ?? new Exhibit[0];
+
+        // 웨이포인트의 exhibitId 집합 구성
+        var ids = new System.Collections.Generic.HashSet<string>(System.StringComparer.Ordinal);
+        foreach (var wp in route.waypoints)
+            if (!string.IsNullOrEmpty(wp.exhibitId))
+                ids.Add(wp.exhibitId);
+
+        // exhibitId 가 DB에 아직 설정되지 않은 경우 전체 목록으로 대체
+        if (ids.Count == 0)
+        {
+            Debug.LogWarning($"UIManager: 경로 '{route.routeName}' 의 웨이포인트에 exhibitId 가 없습니다. " +
+                             "Supabase routes.waypoints 에 exhibitId 를 추가해주세요.");
+            return allExhibits;
+        }
+
+        var filtered = System.Array.FindAll(allExhibits, e => ids.Contains(e.exhibitId));
+
+        if (filtered.Length == 0)
+        {
+            Debug.LogWarning($"UIManager: exhibitId 매칭 실패 — 경로 '{route.routeName}'. 전체 목록으로 대체합니다.");
+            return allExhibits;
+        }
+
+        Debug.Log($"UIManager: 도슨트 필터링 완료 — {filtered.Length}개 표시 (경로: {route.routeName})");
+        return filtered;
+    }
 
     /// <summary>
     /// 지정한 컨테이너 내에서 버튼을 찾고 클릭 이벤트를 연결합니다.

@@ -28,6 +28,11 @@ export class WaypointDto {
   @IsNumber()
   @IsOptional()
   mapIndex?: number;
+
+  // 연결된 전시품의 ar_marker_id — 도슨트 필터링 및 전시품 수정 시 동기화 기준
+  @IsString()
+  @IsOptional()
+  exhibitId?: string;
 }
 
 export class CreateRouteDto {
