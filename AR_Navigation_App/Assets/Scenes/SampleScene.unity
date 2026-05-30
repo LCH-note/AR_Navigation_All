@@ -390,6 +390,10 @@ PrefabInstance:
       propertyPath: m_ClearFlags
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 2512387469002778331, guid: 48cb3fb68c91eb94999fd99957eb0cae, type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 4294967039
+      objectReference: {fileID: 0}
     - target: {fileID: 2512387470319625105, guid: 48cb3fb68c91eb94999fd99957eb0cae, type: 3}
       propertyPath: m_OccludeARHitsWith2DObjects
       value: 1
@@ -872,7 +876,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 15
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -2057,6 +2061,8 @@ GameObject:
   - component: {fileID: 995796346}
   - component: {fileID: 995796345}
   - component: {fileID: 995796347}
+  - component: {fileID: 995796348}
+  - component: {fileID: 995796349}
   m_Layer: 0
   m_Name: ImmersalSDK
   m_TagString: Untagged
@@ -2126,6 +2132,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showStatusOverlay: 0
+--- !u!114 &995796348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 995796344}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 807be15229be0f44cbef5db01891141e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &995796349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 995796344}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 807be15229be0f44cbef5db01891141e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1027775460
 GameObject:
   m_ObjectHideFlags: 0
@@ -2224,6 +2254,7 @@ MonoBehaviour:
   mapCamera: {fileID: 526472442}
   renderTextureSize: 1024
   modelRoot: {fileID: 1203248174}
+  uiRenderCamera: {fileID: 42352948}
   rotationSpeed: 0.3
   zoomSpeed: 0.02
   minDistance: 2
@@ -2238,7 +2269,7 @@ Transform:
   m_GameObject: {fileID: 1028865790}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -66.1, y: 0, z: 14.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2688,7 +2719,7 @@ MonoBehaviour:
   arrowScale: 0.45
   arrowRotationOffset: {x: 0, y: -90, z: 0}
   pathLineWidth: 0.08
-  pathLineHeightOffset: 0.01
+  pathLineHeightOffset: 0.1
   cameraToGroundOffset: 1.5
   wallClearanceDistance: 0.3
   pathLineSimplifyEpsilon: 0.35
@@ -3796,8 +3827,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 211f0d899ebd47f3ad1362d1bc39672f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapAssetA: {fileID: 0}
-  mapAssetB: {fileID: 0}
+  mapAssetA: {fileID: 4900000, guid: b81812e1686ccd54f966c0093fb5a2c2, type: 3}
+  mapAssetB: {fileID: 4900000, guid: 9d94e46e2d00b95409698787bf3ddaa6, type: 3}
 --- !u!114 &1815361769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -47798,68 +47829,6 @@ Mesh:
     offset: 0
     size: 0
     path: 
---- !u!1 &2118599302
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2118599305}
-  - component: {fileID: 2118599304}
-  - component: {fileID: 2118599303}
-  m_Layer: 0
-  m_Name: NetworkManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2118599303
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2118599302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 211f0d899ebd47f3ad1362d1bc39672f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mapAssetA: {fileID: 4900000, guid: b81812e1686ccd54f966c0093fb5a2c2, type: 3}
-  mapAssetB: {fileID: 4900000, guid: 9d94e46e2d00b95409698787bf3ddaa6, type: 3}
---- !u!114 &2118599304
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2118599302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc432a6b3a904d2b833b6cd651c5d47b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  baseUrl: http://localhost:3000/api
-  timeoutSeconds: 15
-  downloadTimeoutSeconds: 60
---- !u!4 &2118599305
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2118599302}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.018657412, y: 1.0179461, z: -0.69465584}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2140807946
 GameObject:
   m_ObjectHideFlags: 0
@@ -47926,7 +47895,6 @@ SceneRoots:
   - {fileID: 2012665946}
   - {fileID: 1649189547}
   - {fileID: 236388402}
-  - {fileID: 2118599305}
   - {fileID: 1090392714}
   - {fileID: 1966586144}
   - {fileID: 1815361770}

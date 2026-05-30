@@ -519,6 +519,12 @@ public class UIManager : MonoBehaviour
         if (wasARScreen && screenToShow != _arMapScreen)
             arMapScreenController?.SetActive(false);
 
+        // 전체 지도 화면에서 다른 화면으로 이동할 때 3D 뷰어 비활성화
+        bool wasMapScreen = _mapScreen != null &&
+                            !_mapScreen.ClassListContains("hidden");
+        if (wasMapScreen && screenToShow != _mapScreen)
+            floorMapController?.OnScreenHidden();
+
         // 모든 화면 숨김
         _startScreen?          .AddToClassList("hidden");
         _mainScreen?           .AddToClassList("hidden");

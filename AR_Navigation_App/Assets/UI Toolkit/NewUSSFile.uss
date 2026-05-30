@@ -821,15 +821,36 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-/* 평면도 미등록 안내 라벨 */
+/* 숨김 유틸리티 클래스 */
+.hidden {
+    display: none;
+}
+
+/* 3D 뷰어 컨테이너: 남은 공간 전체 차지, 절대 위치 자식의 기준점 */
+/* background-color 제거 — UGUI SS-Camera RawImage 가 이 영역을 채우므로 투명으로 유지 */
+.map-3d-area {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+/* 3D RenderTexture 출력 영역: map-3d-area 전체를 절대 위치로 채움 */
+.map-3d-view {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* 미등록 안내 레이블: map-3d-area 위에 절대 위치 오버레이 */
 .no-map-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     font-size: 26px;
     color: rgba(255, 255, 255, 0.45);
     -unity-text-align: middle-center;
     white-space: normal;
-}
-
-/* 숨김 유틸리티 클래스 */
-.hidden {
-    display: none;
 }

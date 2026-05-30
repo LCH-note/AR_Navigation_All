@@ -64,7 +64,7 @@ public class ARNavigationController : MonoBehaviour
     [SerializeField] private float pathLineWidth = 0.06f;
 
     [Tooltip("경로 유도선 바닥 높이 오프셋 (m) — 지면보다 약간 위에 표시")]
-    [SerializeField] private float pathLineHeightOffset = 0.01f;
+    [SerializeField] private float pathLineHeightOffset = 0.1f;
 
     [Tooltip("실기기 전용: 카메라(핸드폰)에서 지면까지 예상 거리 (m). " +
              "경로선 Y = 카메라Y - 이 값 + pathLineHeightOffset. " +
@@ -301,6 +301,12 @@ public class ARNavigationController : MonoBehaviour
     //  Unity 생명주기
     // ════════════════════════════════════════════════════════════════
 
+    void Start()
+    {
+        // AR 바닥 평면의 ZWrite를 끔 — 경로선 ZTest LessEqual 복원 후 바닥 평면이 경로선을 가리는 현상 방지
+        DisableARPlaneDepthWrite();
+    }
+
     void Update()
     {
         // 내비게이션 비활성 상태에서도 동작 — 실기기 좌표 측정용
@@ -519,8 +525,8 @@ public class ARNavigationController : MonoBehaviour
         _pathLine.numCornerVertices = 10;
         _pathLine.numCapVertices    = 6;
 
-        // AR 평면 메시에 가려지지 않도록 ZTest = Always 적용
-        SetZTestAlways(_pathLineObject);
+        // 경로선은 ZTest LessEqual — 벽에 정상적으로 가려지도록
+        SetPathLineZTest(_pathLineObject);
 
         // 항상 숨김으로 시작 — 버튼 상태(비활성)와 일치
         _pathLineVisible = false;
@@ -545,20 +551,10 @@ public class ARNavigationController : MonoBehaviour
             return;
         }
 
-#if UNITY_EDITOR
-        // 에디터: EditorXRSpaceLock의 고정 Y를 바닥 기준으로 사용
-        float lineY = pathLineHeightOffset;
-        if (useImmersalPositioning && immersalXRSpace != null)
-        {
-            var xrLock = immersalXRSpace.GetComponent<EditorXRSpaceLock>();
-            if (xrLock != null) lineY = xrLock.LockedPosition.y + pathLineHeightOffset;
-        }
-#else
-        // 실기기: 카메라(핸드폰) Y에서 눈높이 추정값을 빼 바닥 Y를 계산
-        // XRSpace.position.y는 맵 스캔 시 카메라 높이를 흡수해 실제 바닥보다 높아지는 문제가 있음
-        float groundY = arCamera.transform.position.y - cameraToGroundOffset;
+        // 에디터/실기기 동일: 카메라 Y에서 눈높이(cameraToGroundOffset)를 빼 바닥 Y를 추정하고 오프셋 적용
+        // Max(0)으로 에디터에서 카메라가 낮게 배치될 때 음수 방지
+        float groundY = Mathf.Max(0f, arCamera.transform.position.y - cameraToGroundOffset);
         float lineY = groundY + pathLineHeightOffset;
-#endif
 
         // 원시 경로점 수집: [현재 카메라 위치(바닥)] + [남은 웨이포인트들]
         var rawPoints = new Vector3[1 + remaining];
@@ -1006,23 +1002,31 @@ public class ARNavigationController : MonoBehaviour
         Vector3 destMapLocal,  int destMapIndex,
         string  destName)
     {
-        // XRSpace 로컬 → 유니티 월드 좌표 변환 (각 맵의 XRSpace 사용)
-        Vector3 startWorld = LocalToWorldPoint(new Vector3(startMapLocal.x, 0f, startMapLocal.z), startMapIndex);
-        Vector3 endWorld   = LocalToWorldPoint(new Vector3(destMapLocal.x,  0f, destMapLocal.z),  destMapIndex);
+        // [수정] NavMesh는 에디터 캘리브레이션 기준 맵A 로컬 공간으로 베이킹되어 있음.
+        // 기존: LocalToWorldPoint()로 XRSpace 기반 월드 좌표로 변환 후 NavMesh 쿼리
+        //       → 실기기에서 XRSpace 위치가 AR Session 시작 위치에 따라 달라지므로 NavMesh 범위를 벗어남
+        // 변경: ToMapALocal()로 맵A 로컬 좌표로 통일 후 NavMesh에 직접 전달
+        //       → XRSpace 위치와 무관하게 NavMesh 쿼리가 항상 올바른 공간에서 수행됨
+        Vector3 startNavPos = ToMapALocal(new Vector3(startMapLocal.x, 0f, startMapLocal.z), startMapIndex);
+        Vector3 endNavPos   = ToMapALocal(new Vector3(destMapLocal.x,  0f, destMapLocal.z),  destMapIndex);
+
+        Debug.Log($"[NavMesh 진단] startNavPos={startNavPos} endNavPos={endNavPos}");
 
         // 시작/끝 점을 NavMesh 위로 스냅 (범위 3m 내 탐색)
-        if (!NavMesh.SamplePosition(startWorld, out NavMeshHit startHit, 3f, NavMesh.AllAreas))
+        if (!NavMesh.SamplePosition(startNavPos, out NavMeshHit startHit, 3f, NavMesh.AllAreas))
         {
-            Debug.LogError($"ARNavigationController: 시작 위치({startWorld})를 NavMesh에서 찾을 수 없습니다. " +
+            Debug.LogError($"ARNavigationController: 시작 위치({startNavPos})를 NavMesh에서 찾을 수 없습니다. " +
                            "NavMesh가 올바르게 베이킹되었는지 확인하세요.");
             return null;
         }
-        if (!NavMesh.SamplePosition(endWorld, out NavMeshHit endHit, 3f, NavMesh.AllAreas))
+        if (!NavMesh.SamplePosition(endNavPos, out NavMeshHit endHit, 3f, NavMesh.AllAreas))
         {
-            Debug.LogError($"ARNavigationController: 목적지({endWorld})를 NavMesh에서 찾을 수 없습니다. " +
+            Debug.LogError($"ARNavigationController: 목적지({endNavPos})를 NavMesh에서 찾을 수 없습니다. " +
                            "목적지가 NavMesh 범위 안에 있는지 확인하세요.");
             return null;
         }
+
+        Debug.Log($"[NavMesh 진단] SamplePosition 결과 — start:{startHit.position} end:{endHit.position}");
 
         var navPath = new NavMeshPath();
         bool found = NavMesh.CalculatePath(startHit.position, endHit.position, NavMesh.AllAreas, navPath);
@@ -1042,11 +1046,16 @@ public class ARNavigationController : MonoBehaviour
 
         for (int i = 0; i < corners.Length - 1; i++)
         {
+            // [수정] corners는 NavMesh(≈맵A 로컬) 공간 좌표이므로 WorldToLocalPoint 역변환 불필요.
+            // 기존: WorldToLocalPoint(corners[i]) — XRSpace 기반 이중 변환으로 오차 누적
+            // 변경: corners[i] XZ를 맵A 로컬 좌표로 직접 사용
+            // NavMesh는 맵A 로컬 공간 기준 — 중간 코너는 항상 맵A 좌표계
             waypoints[i] = new NavWaypoint
             {
-                localPosition = WorldToLocalPoint(corners[i]),
+                localPosition = new Vector3(corners[i].x, 0f, corners[i].z),
                 displayName   = "",  // 빈 이름 — 앵커 매칭 방지
-                instruction   = ""
+                instruction   = "",
+                mapIndex      = 0   // NavMesh는 맵A 로컬 공간 기준
             };
         }
 
@@ -1214,8 +1223,8 @@ public class ARNavigationController : MonoBehaviour
         // XRSpace 역변환으로 Immersal 로컬 좌표 추출
         Vector3 localPos = space.InverseTransformPoint(arCamera.transform.position);
 
-        // UnifiedCoordinateSystem은 1-based mapID 사용 (mapIndex 0 → mapID 1)
-        Vector3 unifiedPos = coordinateSystem.LocalToUnified(mapIndex + 1, localPos);
+        // DB map_index(0-based) → Anchor mapID(1-based) 변환 후 통합 좌표계 적용
+        Vector3 unifiedPos = coordinateSystem.LocalToUnified(UnifiedCoordinateSystem.DBIndexToAnchorID(mapIndex), localPos);
         Vector2 pos2D      = new Vector2(unifiedPos.x, unifiedPos.z);
 
         // 위치를 HybridLocationTracker에 전달 — 내부 상태(currentAccuracy, currentPosition2D) 갱신
@@ -1345,10 +1354,6 @@ public class ARNavigationController : MonoBehaviour
     /// useImmersalPositioning=true 이고 XRSpace가 연결된 경우 XRSpace 기준 변환을 사용합니다.
     /// useImmersalPositioning=false 이면 XRSpace 연결 여부와 무관하게 카메라 기준 _localToWorld 행렬을 사용합니다.
     /// </summary>
-    // 진단 로그 출력 횟수 제한 — 원인 파악 후 제거
-    private int _debugLogCount = 0;
-    private const int DebugLogLimit = 30;
-
     private Vector3 LocalToWorldPoint(Vector3 mapLocalPos, int mapIndex = 0)
     {
 #if UNITY_EDITOR
@@ -1367,24 +1372,8 @@ public class ARNavigationController : MonoBehaviour
                         xrLock.LockedPosition,
                         Quaternion.Euler(xrLock.LockedEuler),
                         Vector3.one);
-                    Vector3 result = lockedMat.MultiplyPoint3x4(mapLocalPos);
-                    if (_debugLogCount < DebugLogLimit)
-                    {
-                        _debugLogCount++;
-                        Debug.Log($"[EditorNav #{_debugLogCount}] mapIdx={mapIndex} " +
-                                  $"lockedPos={xrLock.LockedPosition} lockedEuler={xrLock.LockedEuler} " +
-                                  $"local={mapLocalPos} → world={result}");
-                    }
-                    return result;
+                    return lockedMat.MultiplyPoint3x4(mapLocalPos);
                 }
-            }
-            // EditorXRSpaceLock 없음 — 카메라 기준 폴백
-            if (_debugLogCount < DebugLogLimit)
-            {
-                _debugLogCount++;
-                Vector3 fb = _localToWorld.MultiplyPoint3x4(mapLocalPos);
-                Debug.LogWarning($"[EditorNav #{_debugLogCount}] EditorXRSpaceLock 없음 → _localToWorld 폴백  mapIdx={mapIndex} local={mapLocalPos} → {fb}");
-                return fb;
             }
         }
         return _localToWorld.MultiplyPoint3x4(mapLocalPos);
@@ -1392,27 +1381,55 @@ public class ARNavigationController : MonoBehaviour
         if (useImmersalPositioning)
         {
             var space = GetXRSpace(mapIndex);
-            // 처음 30회만 출력 (매 프레임 호출되므로 제한)
-            if (_debugLogCount < DebugLogLimit)
-            {
-                _debugLogCount++;
-                Debug.Log($"[NavCtrl.LocalToWorld #{_debugLogCount}] mapIndex={mapIndex} " +
-                          $"space={(space != null ? space.name : "NULL")} " +
-                          $"XRSpaceB={(immersalXRSpaceB != null ? immersalXRSpaceB.name : "NULL")} " +
-                          $"input={mapLocalPos}");
-                if (space != null)
-                {
-                    Vector3 r = space.TransformPoint(mapLocalPos);
-                    Debug.Log($"[NavCtrl.LocalToWorld #{_debugLogCount}] → output={r}  spacePos={space.position} spaceRot={space.eulerAngles}");
-                    return r;
-                }
-                Vector3 fb = _localToWorld.MultiplyPoint3x4(mapLocalPos);
-                Debug.LogWarning($"[NavCtrl.LocalToWorld #{_debugLogCount}] ⚠ space=NULL → _localToWorld 폴백  output={fb}");
-                return fb;
-            }
             if (space != null) return space.TransformPoint(mapLocalPos);
         }
         return _localToWorld.MultiplyPoint3x4(mapLocalPos);
+#endif
+    }
+
+    /// <summary>
+    /// 맵B 로컬 좌표를 맵A 로컬 좌표로 변환합니다 (NavMesh 공간 통일용).
+    /// NavMesh는 에디터 캘리브레이션 기준 맵A 로컬 공간으로 베이킹되어 있으므로,
+    /// NavMesh 쿼리 전에 모든 좌표를 맵A 로컬로 통일해야 합니다.
+    /// mapIndex=0이면 변환 없이 그대로 반환합니다.
+    /// 에디터: EditorXRSpaceLock 행렬 사용 / 실기기: XRSpace 실시간 변환
+    /// </summary>
+    private Vector3 ToMapALocal(Vector3 pos, int mapIndex)
+    {
+        if (mapIndex == 0) return pos; // 이미 맵A 로컬
+
+#if UNITY_EDITOR
+        if (useImmersalPositioning)
+        {
+            var spaceB = GetXRSpace(1);
+            var spaceA = GetXRSpace(0);
+            if (spaceB != null && spaceA != null)
+            {
+                var lockB = spaceB.GetComponent<EditorXRSpaceLock>();
+                var lockA = spaceA.GetComponent<EditorXRSpaceLock>();
+                if (lockB != null && lockA != null)
+                {
+                    Matrix4x4 matB = Matrix4x4.TRS(lockB.LockedPosition, Quaternion.Euler(lockB.LockedEuler), Vector3.one);
+                    Matrix4x4 matA = Matrix4x4.TRS(lockA.LockedPosition, Quaternion.Euler(lockA.LockedEuler), Vector3.one);
+                    Vector3 world  = matB.MultiplyPoint3x4(pos);
+                    return matA.inverse.MultiplyPoint3x4(world);
+                }
+            }
+        }
+        return pos;
+#else
+        // 실기기: Immersal이 두 XRSpace를 물리 공간에 배치하므로 상대 변환이 안정적
+        if (useImmersalPositioning)
+        {
+            var spaceB = GetXRSpace(1);
+            var spaceA = GetXRSpace(0);
+            if (spaceB != null && spaceA != null)
+            {
+                Vector3 world = spaceB.TransformPoint(pos);
+                return spaceA.InverseTransformPoint(world);
+            }
+        }
+        return pos;
 #endif
     }
 
@@ -1459,6 +1476,54 @@ public class ARNavigationController : MonoBehaviour
                 // ZTest Always(8): 깊이 비교 없이 항상 렌더링
                 mat.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
                 mat.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 경로선 전용 ZTest 설정.
+    /// LessEqual: 카메라에서 더 가까운 오브젝트(벽 등)에 정상적으로 가려짐.
+    /// ZWrite Off: 경로선이 다른 오브젝트의 깊이값을 덮어쓰지 않도록.
+    /// </summary>
+    private void SetPathLineZTest(GameObject root)
+    {
+        foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+        {
+            foreach (var mat in renderer.materials)
+            {
+                // 4 = LessEqual: 깊이 비교 활성화 → 벽 뒤에서는 렌더링 거부
+                mat.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.LessEqual);
+                // ZWrite Off: 경로선이 depth buffer를 오염시키지 않도록
+                mat.SetInt("_ZWrite", 0);
+            }
+        }
+    }
+
+    /// <summary>
+    /// ARPlaneManager가 생성/갱신하는 AR 감지 평면의 ZWrite를 비활성화합니다.
+    /// AR 평면이 depth buffer에 기록되지 않으므로 경로선이 바닥에 묻히지 않습니다.
+    /// </summary>
+    private void DisableARPlaneDepthWrite()
+    {
+        var planeManager = FindObjectOfType<UnityEngine.XR.ARFoundation.ARPlaneManager>();
+        if (planeManager == null) return;
+
+        planeManager.planesChanged += (args) =>
+        {
+            foreach (var plane in args.added)
+                SetPlaneZWrite(plane.gameObject, false);
+            foreach (var plane in args.updated)
+                SetPlaneZWrite(plane.gameObject, false);
+        };
+    }
+
+    private void SetPlaneZWrite(GameObject planeObj, bool zWrite)
+    {
+        foreach (var renderer in planeObj.GetComponentsInChildren<Renderer>(true))
+        {
+            foreach (var mat in renderer.materials)
+            {
+                mat.SetInt("_ZWrite", zWrite ? 1 : 0);
             }
         }
     }

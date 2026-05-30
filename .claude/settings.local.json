@@ -64,7 +64,9 @@
       "PowerShell(Get-Item *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\sleep\\\\Desktop\\\\AR_Navigation_All\\\\AR_Navigation_Backend\\\\src\" -Recurse22)",
       "Bash(npm install *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "mcp__UnityMCP__debug_request_context",
+      "Bash(findstr guid *)"
     ]
   }
 }
